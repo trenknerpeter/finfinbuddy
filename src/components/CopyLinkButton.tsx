@@ -1,0 +1,30 @@
+import { useState } from "react";
+import { Check, Link2 } from "lucide-react";
+
+export function CopyLinkButton() {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+    } catch {
+      /* ignore */
+    }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
+  };
+
+  return (
+    <button
+      onClick={copy}
+      className="inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+    >
+      {copied ? (
+        <Check className="size-4 text-primary" />
+      ) : (
+        <Link2 className="size-4" />
+      )}
+      {copied ? "Copied" : "Copy link"}
+    </button>
+  );
+}

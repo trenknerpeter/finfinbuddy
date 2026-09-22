@@ -1,0 +1,351 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { AlertTriangle } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { NumberSlider } from "@/components/NumberSlider";
+import { Panel } from "@/components/Panel";
+import { CopyLinkButton } from "@/components/CopyLinkButton";
+import { BalanceChart } from "@/components/mortgage/BalanceChart";
+import { useFormatters } from "@/lib/currency";
+import { buildScenario, solveMonths, solvePayment } from "@/lib/finance";
+import { useScenario } from "@/lib/useScenario";
+import { cn } from "@/lib/utils";
+
+export const Route = createFileRoute("/mortgage")({
+  head: () => ({
+    meta: [
+      { title: "Mortgage — FinBuddy" },
+      {
+        name: "description",
+        content:
+          "Enter what's left on your mortgage and see exactly what a rate change does to your payment and total interest.",
+      },
+      { property: "og:title", content: "Mortgage — FinBuddy" },
+      {
+        property: "og:description",
+        content: "Compare your current mortgage rate against a what-if rate, side by side.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Mortgage,
+});
+
+const DEFAULTS = {
+  principal: 250000,
+  rate: 3.5,
+  years: 20,
+  payment: 1450,
+  newRate: 5,
+  solveTerm: false,
+};
+
+function Mortgage() {
+  const [s, patch] = useScenario("finbuddy.mortgage", DEFAULTS);
+  const { money, signedMoney, percent, symbol } = useFormatters();
+  const [tableScenario, setTableScenario] = useState<"current" | "whatIf">("current");
+
+  const solved = useMemo(() => {
+    if (!s.solveTerm) {
+      const months = Math.max(0, Math.round(s.years)) * 12;
+      return { months, monthly: solvePayment(s.principal, s.rate, s.years), warning: false };
+    }
+    const months = solveMonths(s.principal, s.rate, s.payment);
+    if (months === null) return { months: 0, monthly: s.payment, warning: true };
+    return { months: Math.round(months), monthly: s.payment, warning: false };
+  }, [s.solveTerm, s.principal, s.rate, s.years, s.payment]);
+
+  const current = useMemo(
+    () => buildScenario(s.principal, s.rate, solved.months, solved.monthly),
+    [s.principal, s.rate, solved.months, solved.monthly],
+  );
+
+  const whatIf = useMemo(() => {
+    const monthly = solvePayment(s.principal, s.newRate, solved.months / 12);
+    return buildScenario(s.principal, s.newRate, solved.months, monthly);
+  }, [s.principal, s.newRate, solved.months]);
+
+  const invalid = solved.warning || solved.months <= 0;
+  const maxInterest = Math.max(current.totalInterest, whatIf.totalInterest, 1);
+  const sameRate = Math.abs(s.rate - s.newRate) < 0.001;
+  const rows = tableScenario === "current" ? current.rows : whatIf.rows;
+
+  const delta = (a: number, b: number) => {
+    const d = b - a;
+    if (sameRate || Math.abs(d) < 0.5) return <span className="text-muted-foreground">—</span>;
+    return (
+      <span
+        className={cn(
+          "tnum rounded-full px-2 py-0.5 text-xs font-medium",
+          d > 0 ? "bg-negative/10 text-negative" : "bg-accent-soft text-primary",
+        )}
+      >
+        {signedMoney(d)}
+      </span>
+    );
+  };
+
+  return (
+    <div className="grid gap-10 lg:grid-cols-[380px_1fr]">
+      <div className="lg:sticky lg:top-32 lg:self-start">
+        <Panel className="space-y-6">
+          <div>
+            <p className="mb-2 text-sm text-muted-foreground">Solve for</p>
+            <div className="flex rounded-md border border-border p-0.5">
+              {[
+                { label: "Monthly payment", value: false },
+                { label: "Remaining term", value: true },
+              ].map((opt) => (
+                <button
+                  key={opt.label}
+                  onClick={() => patch({ solveTerm: opt.value })}
+                  className={cn(
+                    "h-9 flex-1 rounded text-sm transition-colors",
+                    s.solveTerm === opt.value
+                      ? "bg-secondary font-medium text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              Enter what you know. If the payment we calculate doesn't match your real one, switch
+              to "Remaining term" and enter your actual payment instead.
+            </p>
+          </div>
+
+          <NumberSlider
+            label="Remaining principal"
+            value={s.principal}
+            onChange={(v) => patch({ principal: v })}
+            min={0}
+            max={1000000}
+            step={5000}
+            suffix={symbol}
+            suffixPosition="left"
+          />
+          <NumberSlider
+            label="Current interest rate"
+            value={s.rate}
+            onChange={(v) => patch({ rate: v })}
+            min={0}
+            max={15}
+            step={0.05}
+            suffix="%"
+          />
+          {s.solveTerm ? (
+            <NumberSlider
+              label="Current monthly payment"
+              value={s.payment}
+              onChange={(v) => patch({ payment: v })}
+              min={0}
+              max={10000}
+              step={50}
+              suffix={symbol}
+              suffixPosition="left"
+            />
+          ) : (
+            <NumberSlider
+              label="Remaining term"
+              value={s.years}
+              onChange={(v) => patch({ years: v })}
+              min={1}
+              max={40}
+              step={1}
+              suffix="years"
+            />
+          )}
+
+          <div className="rounded-md border border-border bg-secondary/40 p-4">
+            <p className="mb-4 text-sm font-semibold">What if the rate changes?</p>
+            <NumberSlider
+              label="New interest rate"
+              value={s.newRate}
+              onChange={(v) => patch({ newRate: v })}
+              min={0}
+              max={15}
+              step={0.05}
+              suffix="%"
+            />
+          </div>
+        </Panel>
+      </div>
+
+      <div className="space-y-8">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight">Rate change impact</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {money(s.principal)} left
+              {!invalid && (
+                <>
+                  {" "}
+                  over {(solved.months / 12).toFixed(solved.months % 12 === 0 ? 0 : 1)} years
+                </>
+              )}
+              .
+            </p>
+          </div>
+          <CopyLinkButton />
+        </div>
+
+        {solved.warning && (
+          <div className="flex items-start gap-3 rounded-md border border-negative/30 bg-negative/5 p-4 text-sm text-negative">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+            <p>That payment doesn't cover the monthly interest — the balance would never go down.</p>
+          </div>
+        )}
+
+        {invalid ? (
+          !solved.warning && (
+            <Panel>
+              <p className="text-sm text-muted-foreground">
+                Enter a remaining term and principal to compare rates.
+              </p>
+            </Panel>
+          )
+        ) : (
+          <>
+            <Panel title="Current vs what-if">
+              <div className="grid grid-cols-[1fr_auto_auto] items-center gap-x-6 gap-y-4 text-sm">
+                <div />
+                <div className="text-right text-xs uppercase tracking-wide text-muted-foreground">
+                  Now · {percent(s.rate)}
+                </div>
+                <div className="text-right text-xs uppercase tracking-wide text-muted-foreground">
+                  What-if · {percent(s.newRate)}
+                </div>
+
+                {[
+                  { label: "Monthly payment", a: current.monthly, b: whatIf.monthly },
+                  { label: "Total interest", a: current.totalInterest, b: whatIf.totalInterest },
+                  { label: "Total paid", a: current.totalPaid, b: whatIf.totalPaid },
+                ].map((row) => (
+                  <div key={row.label} className="col-span-3 grid grid-cols-subgrid items-center border-t border-border pt-4">
+                    <span className="text-muted-foreground">{row.label}</span>
+                    <span className="tnum text-right font-medium">{money(row.a)}</span>
+                    <span className="flex items-center justify-end gap-2 text-right">
+                      <span className="tnum font-medium">{money(row.b)}</span>
+                      {delta(row.a, row.b)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-5 text-xs text-muted-foreground">
+                Assumes the same remaining term — the monthly payment absorbs the rate change.
+              </p>
+            </Panel>
+
+            <Panel title="Remaining balance over time">
+              <BalanceChart current={current.balanceByYear} whatIf={whatIf.balanceByYear} />
+              <div className="mt-4 flex items-center gap-5 text-xs text-muted-foreground">
+                <span className="flex items-center gap-2">
+                  <span className="h-0.5 w-5 bg-foreground" /> Now
+                </span>
+                <span className="flex items-center gap-2">
+                  <span className="h-0.5 w-5 border-t-2 border-dashed border-primary" /> What-if
+                </span>
+              </div>
+            </Panel>
+
+            <Panel title="Total interest, compared">
+              <div className="space-y-6">
+                {[
+                  { label: `Now · ${percent(s.rate)}`, value: current.totalInterest, accent: false },
+                  {
+                    label: `What-if · ${percent(s.newRate)}`,
+                    value: whatIf.totalInterest,
+                    accent: true,
+                  },
+                ].map((bar) => {
+                  const costsMore = whatIf.totalInterest > current.totalInterest;
+                  return (
+                    <div key={bar.label}>
+                      <div className="mb-2 flex items-baseline justify-between text-sm">
+                        <span className="text-muted-foreground">{bar.label}</span>
+                        <span className="tnum text-lg font-semibold">{money(bar.value)}</span>
+                      </div>
+                      <div className="h-8 w-full overflow-hidden rounded bg-secondary">
+                        <div
+                          className={cn(
+                            "h-full transition-all duration-200",
+                            !bar.accent
+                              ? "bg-neutral-fill"
+                              : sameRate
+                                ? "bg-neutral-fill"
+                                : costsMore
+                                  ? "bg-negative"
+                                  : "bg-primary",
+                          )}
+                          style={{ width: `${(bar.value / maxInterest) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Panel>
+
+            <Panel className="py-2">
+              <Accordion type="single" collapsible>
+                <AccordionItem value="years" className="border-none">
+                  <AccordionTrigger className="text-sm font-semibold hover:no-underline">
+                    Year by year
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="mb-4 flex rounded-md border border-border p-0.5">
+                      {(["current", "whatIf"] as const).map((v) => (
+                        <button
+                          key={v}
+                          onClick={() => setTableScenario(v)}
+                          className={cn(
+                            "h-8 flex-1 rounded text-xs transition-colors",
+                            tableScenario === v
+                              ? "bg-secondary font-medium text-foreground"
+                              : "text-muted-foreground hover:text-foreground",
+                          )}
+                        >
+                          {v === "current" ? `Now · ${percent(s.rate)}` : `What-if · ${percent(s.newRate)}`}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="max-h-[420px] overflow-auto">
+                      <table className="w-full text-sm">
+                        <thead className="sticky top-0 bg-card text-xs uppercase tracking-wide text-muted-foreground">
+                          <tr className="border-b border-border">
+                            <th className="py-2 text-left font-normal">Year</th>
+                            <th className="py-2 text-right font-normal">Interest paid</th>
+                            <th className="py-2 text-right font-normal">Principal paid</th>
+                            <th className="py-2 text-right font-normal">Remaining balance</th>
+                          </tr>
+                        </thead>
+                        <tbody className="tnum">
+                          {rows.map((r) => (
+                            <tr key={r.year} className="border-b border-border/60 last:border-0">
+                              <td className="py-2 text-left">{r.year}</td>
+                              <td className="py-2 text-right">{money(r.interestPaid)}</td>
+                              <td className="py-2 text-right">{money(r.principalPaid)}</td>
+                              <td className="py-2 text-right font-medium">{money(r.balance)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </Panel>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
