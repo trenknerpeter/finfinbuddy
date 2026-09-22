@@ -70,7 +70,7 @@ function Kpi({
 
 function Invest() {
   const [s, patch] = useScenario("finbuddy.invest", DEFAULTS);
-  const { money, percent } = useFormatters();
+  const { money, percent, symbol } = useFormatters();
 
   const result = useMemo(
     () =>
@@ -97,7 +97,7 @@ function Invest() {
             min={0}
             max={250000}
             step={500}
-            suffix={useFormatters().symbol}
+            suffix={symbol}
             suffixPosition="left"
           />
           <NumberSlider
@@ -107,7 +107,7 @@ function Invest() {
             min={0}
             max={5000}
             step={50}
-            suffix={useFormatters().symbol}
+            suffix={symbol}
             suffixPosition="left"
           />
           <NumberSlider
