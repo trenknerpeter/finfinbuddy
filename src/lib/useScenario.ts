@@ -56,7 +56,9 @@ export function useScenario<T extends Record<string, Scalar>>(storageKey: string
       params.set(key, typeof value === "boolean" ? (value ? "1" : "0") : String(value));
     }
     params.set("currency", currency);
+    const { scrollX, scrollY } = window;
     window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
+    window.scrollTo(scrollX, scrollY);
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(state));
     } catch {
