@@ -58,10 +58,10 @@ function Kpi({
     <div className="min-w-0">
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
       <p
-        className={`tnum mt-1.5 break-words font-semibold tracking-tight ${
+        className={`tnum mt-1.5 overflow-hidden text-ellipsis whitespace-nowrap font-semibold tracking-tight ${
           headline
-            ? "text-[clamp(1.5rem,2.3vw,2.25rem)] leading-tight"
-            : "text-[clamp(1rem,1.3vw,1.25rem)] leading-tight"
+            ? "text-[clamp(1.5rem,2.1vw,2.25rem)] leading-tight"
+            : "text-[clamp(1rem,1.25vw,1.25rem)] leading-tight"
         } ${accent ? "text-primary" : "text-foreground"}`}
       >
         {value}
@@ -180,7 +180,13 @@ function Invest() {
         ) : (
           <>
             <Panel>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <div
+                className={`grid gap-6 sm:grid-cols-2 ${
+                  s.real
+                    ? "lg:grid-cols-[1.5fr_1fr_1fr_1.1fr]"
+                    : "lg:grid-cols-[1.5fr_1fr_1.1fr]"
+                }`}
+              >
                 <Kpi label="Final value" value={money(result.finalValue)} headline />
                 <Kpi label="Total contributed" value={money(result.totalContributed)} />
                 <Kpi
@@ -216,13 +222,13 @@ function Invest() {
                 Once the {Math.round(s.years)} years are up, this is what you could take out each
                 year without touching the rest.
               </p>
-              <div className="grid gap-8 lg:grid-cols-[320px_1fr]">
+              <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
                 <div className="space-y-6">
                   <div>
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
                       Invested amount
                     </p>
-                    <p className="tnum mt-1.5 break-words text-[clamp(1.125rem,1.6vw,1.5rem)] font-semibold leading-tight">
+                    <p className="tnum mt-1.5 whitespace-nowrap text-[clamp(1.125rem,1.6vw,1.5rem)] font-semibold leading-tight">
                       {money(result.finalValue)}
                     </p>
                   </div>
@@ -253,12 +259,12 @@ function Invest() {
                   </div>
                 </div>
 
-                <div className="grid gap-6 sm:grid-cols-2">
-                  <div className="rounded-lg border border-border p-5">
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div className="min-w-0 rounded-lg border border-border p-5">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
                       Per month
                     </p>
-                    <p className="tnum mt-1.5 break-words text-[clamp(1.5rem,2.3vw,2.25rem)] font-semibold leading-tight text-primary">
+                    <p className="tnum mt-1.5 break-words whitespace-nowrap text-[clamp(1.375rem,1.9vw,2rem)] font-semibold leading-tight text-primary">
                       {money(monthlyIncome)}
                     </p>
                     <p className="mt-1.5 text-xs text-muted-foreground">
@@ -270,11 +276,11 @@ function Invest() {
                       </p>
                     )}
                   </div>
-                  <div className="rounded-lg border border-border p-5">
+                  <div className="min-w-0 rounded-lg border border-border p-5">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
                       Per year
                     </p>
-                    <p className="tnum mt-1.5 break-words text-[clamp(1.25rem,1.8vw,1.75rem)] font-semibold leading-tight">
+                    <p className="tnum mt-1.5 whitespace-nowrap text-[clamp(1.125rem,1.6vw,1.625rem)] font-semibold leading-tight">
                       {money(yearlyIncome)}
                     </p>
                     <p className="mt-1.5 text-xs text-muted-foreground">
