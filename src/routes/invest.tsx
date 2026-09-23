@@ -54,15 +54,25 @@ function Kpi({
   accent?: boolean;
   headline?: boolean;
 }) {
+  const long = value.length > 13;
+  const veryLong = value.length > 16;
+  const size = headline
+    ? veryLong
+      ? "text-[clamp(1.125rem,1.6vw,1.625rem)]"
+      : long
+        ? "text-[clamp(1.25rem,1.85vw,2rem)]"
+        : "text-[clamp(1.5rem,2.1vw,2.25rem)]"
+    : long
+      ? "text-[clamp(0.9375rem,1.05vw,1.0625rem)]"
+      : "text-[clamp(1rem,1.25vw,1.25rem)]";
+
   return (
     <div className="min-w-0">
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
       <p
-        className={`tnum mt-1.5 overflow-hidden text-ellipsis whitespace-nowrap font-semibold tracking-tight ${
-          headline
-            ? "text-[clamp(1.5rem,2.1vw,2.25rem)] leading-tight"
-            : "text-[clamp(1rem,1.25vw,1.25rem)] leading-tight"
-        } ${accent ? "text-primary" : "text-foreground"}`}
+        className={`tnum mt-1.5 overflow-hidden whitespace-nowrap font-semibold leading-tight tracking-tight ${size} ${
+          accent ? "text-primary" : "text-foreground"
+        }`}
       >
         {value}
       </p>
@@ -264,7 +274,7 @@ function Invest() {
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
                       Per month
                     </p>
-                    <p className="tnum mt-1.5 break-words whitespace-nowrap text-[clamp(1.375rem,1.9vw,2rem)] font-semibold leading-tight text-primary">
+                    <p className="tnum mt-1.5 whitespace-nowrap text-[clamp(1.375rem,1.9vw,2rem)] font-semibold leading-tight text-primary">
                       {money(monthlyIncome)}
                     </p>
                     <p className="mt-1.5 text-xs text-muted-foreground">
