@@ -254,6 +254,7 @@ function Invest() {
                   <div className="flex gap-2">
                     {[3, 4, 4.5, 5].map((r) => (
                       <button
+                        type="button"
                         key={r}
                         onClick={() => patch({ withdrawRate: r })}
                         className={
