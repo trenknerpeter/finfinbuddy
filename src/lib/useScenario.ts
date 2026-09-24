@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "@tanstack/react-router";
 import { useCurrency } from "./currency";
 
 type Scalar = number | boolean;
@@ -10,6 +11,7 @@ type Scalar = number | boolean;
 export function useScenario<T extends Record<string, Scalar>>(storageKey: string, defaults: T) {
   const [state, setState] = useState<T>(defaults);
   const { currency } = useCurrency();
+  const router = useRouter();
   const hydrated = useRef(false);
 
   const decode = useCallback(
@@ -56,15 +58,16 @@ export function useScenario<T extends Record<string, Scalar>>(storageKey: string
       params.set(key, typeof value === "boolean" ? (value ? "1" : "0") : String(value));
     }
     params.set("currency", currency);
-    const { scrollX, scrollY } = window;
-    window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
-    window.scrollTo(scrollX, scrollY);
+    const href = `${window.location.pathname}?${params.toString()}`;
+    if (`${window.location.pathname}${window.location.search}` !== href) {
+      void router.navigate({ href, replace: true, resetScroll: false });
+    }
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(state));
     } catch {
       /* ignore */
     }
-  }, [state, currency, storageKey]);
+  }, [state, currency, router, storageKey]);
 
   const patch = useCallback((p: Partial<T>) => setState((s) => ({ ...s, ...p })), []);
 
