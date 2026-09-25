@@ -11,6 +11,8 @@ import { NumberSlider } from "@/components/NumberSlider";
 import { Panel } from "@/components/Panel";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
 import { BalanceChart } from "@/components/mortgage/BalanceChart";
+import { PaymentBreakdownChart } from "@/components/mortgage/PaymentBreakdownChart";
+import { Switch } from "@/components/ui/switch";
 import { useFormatters } from "@/lib/currency";
 import { buildScenario, solveMonths, solvePayment } from "@/lib/finance";
 import { useScenario } from "@/lib/useScenario";
@@ -44,6 +46,7 @@ const DEFAULTS = {
   payment: 1450,
   newRate: 5,
   solveTerm: false,
+  compareRate: false,
 };
 
 function Mortgage() {
@@ -165,16 +168,30 @@ function Mortgage() {
           )}
 
           <div className="rounded-md border border-border bg-secondary/40 p-4">
-            <p className="mb-4 text-sm font-semibold">What if the rate changes?</p>
-            <NumberSlider
-              label="New interest rate"
-              value={s.newRate}
-              onChange={(v) => patch({ newRate: v })}
-              min={0}
-              max={15}
-              step={0.05}
-              suffix="%"
-            />
+            <div className="flex min-h-11 items-center justify-between gap-4">
+              <label htmlFor="compare-rate" className="text-sm font-semibold">
+                Compare another rate
+              </label>
+              <Switch
+                id="compare-rate"
+                checked={s.compareRate}
+                onCheckedChange={(checked) => patch({ compareRate: checked })}
+                aria-label="Compare another interest rate"
+              />
+            </div>
+            {s.compareRate && (
+              <div className="mt-4 border-t border-border pt-4">
+                <NumberSlider
+                  label="New interest rate"
+                  value={s.newRate}
+                  onChange={(v) => patch({ newRate: v })}
+                  min={0}
+                  max={15}
+                  step={0.05}
+                  suffix="%"
+                />
+              </div>
+            )}
           </div>
         </Panel>
       </div>
@@ -214,49 +231,80 @@ function Mortgage() {
           )
         ) : (
           <>
-            <Panel title="Current vs what-if">
-              <div className="grid grid-cols-[1fr_auto_auto] items-center gap-x-6 gap-y-4 text-sm">
-                <div />
-                <div className="text-right text-xs uppercase tracking-wide text-muted-foreground">
-                  Now · {percent(s.rate)}
-                </div>
-                <div className="text-right text-xs uppercase tracking-wide text-muted-foreground">
-                  What-if · {percent(s.newRate)}
-                </div>
-
-                {[
-                  { label: "Monthly payment", a: current.monthly, b: whatIf.monthly },
-                  { label: "Total interest", a: current.totalInterest, b: whatIf.totalInterest },
-                  { label: "Total paid", a: current.totalPaid, b: whatIf.totalPaid },
-                ].map((row) => (
-                  <div key={row.label} className="col-span-3 grid grid-cols-subgrid items-center border-t border-border pt-4">
-                    <span className="text-muted-foreground">{row.label}</span>
-                    <span className="tnum text-right font-medium">{money(row.a)}</span>
-                    <span className="flex items-center justify-end gap-2 text-right">
-                      <span className="tnum font-medium">{money(row.b)}</span>
-                      {delta(row.a, row.b)}
-                    </span>
+            {s.compareRate ? (
+              <Panel title="Current vs what-if">
+                <div className="grid grid-cols-[1fr_auto_auto] items-center gap-x-6 gap-y-4 text-sm">
+                  <div />
+                  <div className="text-right text-xs uppercase tracking-wide text-muted-foreground">
+                    Now · {percent(s.rate)}
                   </div>
-                ))}
-              </div>
-              <p className="mt-5 text-xs text-muted-foreground">
-                Assumes the same remaining term — the monthly payment absorbs the rate change.
-              </p>
-            </Panel>
+                  <div className="text-right text-xs uppercase tracking-wide text-muted-foreground">
+                    What-if · {percent(s.newRate)}
+                  </div>
 
-            <Panel title="Remaining balance over time">
-              <BalanceChart current={current.balanceByYear} whatIf={whatIf.balanceByYear} />
+                  {[
+                    { label: "Monthly payment", a: current.monthly, b: whatIf.monthly },
+                    { label: "Total interest", a: current.totalInterest, b: whatIf.totalInterest },
+                    { label: "Total paid", a: current.totalPaid, b: whatIf.totalPaid },
+                  ].map((row) => (
+                    <div key={row.label} className="col-span-3 grid grid-cols-subgrid items-center border-t border-border pt-4">
+                      <span className="text-muted-foreground">{row.label}</span>
+                      <span className="tnum text-right font-medium">{money(row.a)}</span>
+                      <span className="flex items-center justify-end gap-2 text-right">
+                        <span className="tnum font-medium">{money(row.b)}</span>
+                        {delta(row.a, row.b)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-5 text-xs text-muted-foreground">
+                  Assumes the same remaining term — the monthly payment absorbs the rate change.
+                </p>
+              </Panel>
+            ) : (
+              <Panel title="Your mortgage">
+                <div className="grid gap-5 sm:grid-cols-3">
+                  {[
+                    { label: "Monthly payment", value: current.monthly },
+                    { label: "Total interest", value: current.totalInterest },
+                    { label: "Total paid", value: current.totalPaid },
+                  ].map((item) => (
+                    <div key={item.label} className="border-t border-border pt-4">
+                      <p className="text-xs text-muted-foreground">{item.label}</p>
+                      <p className="tnum mt-1 whitespace-nowrap text-xl font-semibold">{money(item.value)}</p>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+            )}
+
+            <Panel title="Payments over time">
+              <PaymentBreakdownChart rows={current.rows} />
               <div className="mt-4 flex items-center gap-5 text-xs text-muted-foreground">
                 <span className="flex items-center gap-2">
-                  <span className="h-0.5 w-5 bg-foreground" /> Now
+                  <span className="h-2.5 w-2.5 rounded-sm bg-primary" /> Principal
                 </span>
                 <span className="flex items-center gap-2">
-                  <span className="h-0.5 w-5 border-t-2 border-dashed border-primary" /> What-if
+                  <span className="h-2.5 w-2.5 rounded-sm bg-foreground" /> Interest
                 </span>
               </div>
             </Panel>
 
-            <Panel title="Total interest, compared">
+            {s.compareRate && (
+              <Panel title="Remaining balance over time">
+                <BalanceChart current={current.balanceByYear} whatIf={whatIf.balanceByYear} />
+                <div className="mt-4 flex items-center gap-5 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-2">
+                    <span className="h-0.5 w-5 bg-foreground" /> Now
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <span className="h-0.5 w-5 border-t-2 border-dashed border-primary" /> What-if
+                  </span>
+                </div>
+              </Panel>
+            )}
+
+            {s.compareRate && <Panel title="Total interest, compared">
               <div className="space-y-6">
                 {[
                   { label: `Now · ${percent(s.rate)}`, value: current.totalInterest, accent: false },
@@ -292,7 +340,7 @@ function Mortgage() {
                   );
                 })}
               </div>
-            </Panel>
+            </Panel>}
 
             <Panel className="py-2">
               <Accordion type="single" collapsible>
@@ -301,22 +349,25 @@ function Mortgage() {
                     Year by year
                   </AccordionTrigger>
                   <AccordionContent>
-                    <div className="mb-4 flex rounded-md border border-border p-0.5">
-                      {(["current", "whatIf"] as const).map((v) => (
-                        <button
-                          key={v}
-                          onClick={() => setTableScenario(v)}
-                          className={cn(
-                            "h-8 flex-1 rounded text-xs transition-colors",
-                            tableScenario === v
-                              ? "bg-secondary font-medium text-foreground"
-                              : "text-muted-foreground hover:text-foreground",
-                          )}
-                        >
-                          {v === "current" ? `Now · ${percent(s.rate)}` : `What-if · ${percent(s.newRate)}`}
-                        </button>
-                      ))}
-                    </div>
+                    {s.compareRate && (
+                      <div className="mb-4 flex rounded-md border border-border p-0.5">
+                        {(["current", "whatIf"] as const).map((v) => (
+                          <button
+                            type="button"
+                            key={v}
+                            onClick={() => setTableScenario(v)}
+                            className={cn(
+                              "h-8 flex-1 rounded text-xs transition-colors",
+                              tableScenario === v
+                                ? "bg-secondary font-medium text-foreground"
+                                : "text-muted-foreground hover:text-foreground",
+                            )}
+                          >
+                            {v === "current" ? `Now · ${percent(s.rate)}` : `What-if · ${percent(s.newRate)}`}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     <div className="max-h-[420px] overflow-auto">
                       <table className="w-full text-sm">
                         <thead className="sticky top-0 bg-card text-xs uppercase tracking-wide text-muted-foreground">
