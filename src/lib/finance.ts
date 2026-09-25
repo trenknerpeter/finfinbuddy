@@ -115,45 +115,57 @@ export function buildScenario(
   annualRate: number,
   months: number,
   monthly: number,
+  extra?: { amount: number; month: number },
 ): MortgageScenario {
   const P = num(principal);
   const r = num(annualRate) / 100 / 12;
-  const n = Math.max(0, months);
+  const maxN = Math.max(0, Math.round(months));
   const M = num(monthly);
+  const extraAmt = extra ? num(extra.amount) : 0;
+  const extraMonth = extra ? Math.max(0, Math.round(extra.month)) : -1;
 
-  const balanceAt = (k: number) => {
-    const m = Math.min(k, n);
-    const b =
-      r === 0 ? P - M * m : P * Math.pow(1 + r, m) - M * ((Math.pow(1 + r, m) - 1) / r);
-    return Math.max(0, b);
-  };
-
-  const totalYears = Math.ceil(n / 12);
+  let balance = P;
+  let totalPaid = 0;
+  let m = 0;
+  let yearInterest = 0;
+  let yearPrincipal = 0;
   const rows: MortgageYear[] = [];
-  const balanceByYear: number[] = [balanceAt(0)];
+  const balanceByYear: number[] = [P];
 
-  let prevBalance = P;
-  for (let y = 1; y <= totalYears; y++) {
-    const monthsElapsed = Math.min(y * 12, n);
-    const balance = balanceAt(monthsElapsed);
-    const monthsThisYear = monthsElapsed - (y - 1) * 12;
-    const paid = M * monthsThisYear;
-    const principalPaid = prevBalance - balance;
-    rows.push({
-      year: y,
-      interestPaid: Math.max(0, paid - principalPaid),
-      principalPaid: Math.max(0, principalPaid),
-      balance,
-    });
-    balanceByYear.push(balance);
-    prevBalance = balance;
+  while (balance > 0 && m < maxN) {
+    m++;
+    const interest = balance * r;
+    const pay = Math.min(M, balance + interest);
+    const principalPart = pay - interest;
+    balance -= principalPart;
+    totalPaid += pay;
+    yearInterest += interest;
+    yearPrincipal += principalPart;
+
+    if (m === extraMonth && extraAmt > 0 && balance > 0) {
+      const e = Math.min(extraAmt, balance);
+      balance -= e;
+      totalPaid += e;
+      yearPrincipal += e;
+    }
+
+    if (m % 12 === 0 || balance === 0 || m === maxN) {
+      rows.push({
+        year: Math.ceil(m / 12),
+        interestPaid: Math.max(0, yearInterest),
+        principalPaid: Math.max(0, yearPrincipal),
+        balance,
+      });
+      balanceByYear.push(balance);
+      yearInterest = 0;
+      yearPrincipal = 0;
+    }
   }
 
-  const totalPaid = M * n;
   return {
     rate: num(annualRate),
     monthly: M,
-    months: n,
+    months: m,
     totalPaid,
     totalInterest: Math.max(0, totalPaid - P),
     rows,
