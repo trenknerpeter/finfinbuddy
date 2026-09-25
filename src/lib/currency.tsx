@@ -82,3 +82,14 @@ export function useFormatters() {
 
   return { money, signedMoney, compact, percent, symbol: meta.symbol, currency };
 }
+
+/** Multiplier for money slider ranges, so CZK amounts aren't capped at EUR-sized limits. */
+export const CURRENCY_SCALE: Record<CurrencyCode, number> = {
+  EUR: 1,
+  CZK: 25,
+  USD: 1,
+  GBP: 1,
+  CHF: 1,
+};
+
+export const useCurrencyScale = () => CURRENCY_SCALE[useCurrency().currency];
