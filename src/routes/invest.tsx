@@ -6,7 +6,7 @@ import { NumberSlider } from "@/components/NumberSlider";
 import { Panel } from "@/components/Panel";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
 import { InvestChart } from "@/components/invest/InvestChart";
-import { useFormatters } from "@/lib/currency";
+import { useCurrencyScale, useFormatters } from "@/lib/currency";
 import { computeInvest } from "@/lib/finance";
 import { useScenario } from "@/lib/useScenario";
 
@@ -84,6 +84,7 @@ function Kpi({
 function Invest() {
   const [s, patch] = useScenario("finbuddy.invest", DEFAULTS);
   const { money, percent, symbol } = useFormatters();
+  const scale = useCurrencyScale();
 
   const result = useMemo(
     () =>
@@ -112,8 +113,8 @@ function Invest() {
             value={s.initial}
             onChange={(v) => patch({ initial: v })}
             min={0}
-            max={250000}
-            step={500}
+            max={250000 * scale}
+            step={500 * scale}
             suffix={symbol}
             suffixPosition="left"
           />
@@ -122,8 +123,8 @@ function Invest() {
             value={s.monthly}
             onChange={(v) => patch({ monthly: v })}
             min={0}
-            max={5000}
-            step={50}
+            max={5000 * scale}
+            step={50 * scale}
             suffix={symbol}
             suffixPosition="left"
           />

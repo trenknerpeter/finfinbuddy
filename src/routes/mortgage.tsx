@@ -13,7 +13,7 @@ import { CopyLinkButton } from "@/components/CopyLinkButton";
 import { BalanceChart } from "@/components/mortgage/BalanceChart";
 import { PaymentBreakdownChart } from "@/components/mortgage/PaymentBreakdownChart";
 import { Switch } from "@/components/ui/switch";
-import { useFormatters } from "@/lib/currency";
+import { useCurrencyScale, useFormatters } from "@/lib/currency";
 import { buildScenario, solveMonths, solvePayment } from "@/lib/finance";
 import { useScenario } from "@/lib/useScenario";
 import { cn } from "@/lib/utils";
@@ -52,6 +52,7 @@ const DEFAULTS = {
 function Mortgage() {
   const [s, patch] = useScenario("finbuddy.mortgage", DEFAULTS);
   const { money, signedMoney, percent, symbol } = useFormatters();
+  const scale = useCurrencyScale();
   const [tableScenario, setTableScenario] = useState<"current" | "whatIf">("current");
 
   const solved = useMemo(() => {
@@ -130,8 +131,8 @@ function Mortgage() {
             value={s.principal}
             onChange={(v) => patch({ principal: v })}
             min={0}
-            max={1000000}
-            step={5000}
+            max={1000000 * scale}
+            step={5000 * scale}
             suffix={symbol}
             suffixPosition="left"
           />
@@ -150,8 +151,8 @@ function Mortgage() {
               value={s.payment}
               onChange={(v) => patch({ payment: v })}
               min={0}
-              max={10000}
-              step={50}
+              max={10000 * scale}
+              step={50 * scale}
               suffix={symbol}
               suffixPosition="left"
             />
