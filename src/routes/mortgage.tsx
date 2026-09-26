@@ -73,6 +73,17 @@ function Mortgage() {
     [s.principal, s.rate, solved.months, solved.monthly],
   );
 
+  const withExtra = useMemo(
+    () =>
+      s.extraPayment
+        ? buildScenario(s.principal, s.rate, solved.months, solved.monthly, {
+            amount: s.extraAmount,
+            month: Math.round(s.extraYear * 12),
+          })
+        : current,
+    [s.extraPayment, s.principal, s.rate, solved.months, solved.monthly, s.extraAmount, s.extraYear, current],
+  );
+
   const whatIf = useMemo(() => {
     const monthly = solvePayment(s.principal, s.newRate, solved.months / 12);
     return buildScenario(s.principal, s.newRate, solved.months, monthly);
@@ -82,6 +93,9 @@ function Mortgage() {
   const maxInterest = Math.max(current.totalInterest, whatIf.totalInterest, 1);
   const sameRate = Math.abs(s.rate - s.newRate) < 0.001;
   const rows = tableScenario === "current" ? current.rows : whatIf.rows;
+
+  const interestSaved = Math.max(0, current.totalInterest - withExtra.totalInterest);
+  const monthsSaved = Math.max(0, current.months - withExtra.months);
 
   const delta = (a: number, b: number) => {
     const d = b - a;
