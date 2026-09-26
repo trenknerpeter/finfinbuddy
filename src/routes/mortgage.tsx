@@ -345,6 +345,37 @@ function Mortgage() {
               </div>
             </Panel>
 
+            {s.extraPayment && (
+              <Panel title="Impact of the extra payment">
+                <div className="grid gap-5 sm:grid-cols-3">
+                  <div className="border-t border-border pt-4">
+                    <p className="text-xs text-muted-foreground">Interest saved</p>
+                    <p className="tnum mt-1 whitespace-nowrap text-xl font-semibold text-primary">
+                      {money(interestSaved)}
+                    </p>
+                  </div>
+                  <div className="border-t border-border pt-4">
+                    <p className="text-xs text-muted-foreground">Paid off earlier by</p>
+                    <p className="tnum mt-1 whitespace-nowrap text-xl font-semibold">
+                      {monthsSaved >= 12
+                        ? `${Math.floor(monthsSaved / 12)}y ${monthsSaved % 12}m`
+                        : `${monthsSaved}m`}
+                    </p>
+                  </div>
+                  <div className="border-t border-border pt-4">
+                    <p className="text-xs text-muted-foreground">New total interest</p>
+                    <p className="tnum mt-1 whitespace-nowrap text-xl font-semibold">
+                      {money(withExtra.totalInterest)}
+                    </p>
+                  </div>
+                </div>
+                <p className="mt-5 text-xs text-muted-foreground">
+                  A one-time payment of {money(s.extraAmount)} in year {Math.round(s.extraYear)},
+                  keeping the same monthly payment.
+                </p>
+              </Panel>
+            )}
+
             {s.compareRate && (
               <Panel title="Remaining balance over time">
                 <BalanceChart current={current.balanceByYear} whatIf={whatIf.balanceByYear} />
