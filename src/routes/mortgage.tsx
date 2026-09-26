@@ -47,6 +47,9 @@ const DEFAULTS = {
   newRate: 5,
   solveTerm: false,
   compareRate: false,
+  extraPayment: false,
+  extraAmount: 10000,
+  extraYear: 3,
 };
 
 function Mortgage() {
@@ -70,6 +73,17 @@ function Mortgage() {
     [s.principal, s.rate, solved.months, solved.monthly],
   );
 
+  const withExtra = useMemo(
+    () =>
+      s.extraPayment
+        ? buildScenario(s.principal, s.rate, solved.months, solved.monthly, {
+            amount: s.extraAmount,
+            month: Math.round(s.extraYear * 12),
+          })
+        : current,
+    [s.extraPayment, s.principal, s.rate, solved.months, solved.monthly, s.extraAmount, s.extraYear, current],
+  );
+
   const whatIf = useMemo(() => {
     const monthly = solvePayment(s.principal, s.newRate, solved.months / 12);
     return buildScenario(s.principal, s.newRate, solved.months, monthly);
@@ -79,6 +93,9 @@ function Mortgage() {
   const maxInterest = Math.max(current.totalInterest, whatIf.totalInterest, 1);
   const sameRate = Math.abs(s.rate - s.newRate) < 0.001;
   const rows = tableScenario === "current" ? current.rows : whatIf.rows;
+
+  const interestSaved = Math.max(0, current.totalInterest - withExtra.totalInterest);
+  const monthsSaved = Math.max(0, current.months - withExtra.months);
 
   const delta = (a: number, b: number) => {
     const d = b - a;
@@ -194,6 +211,43 @@ function Mortgage() {
               </div>
             )}
           </div>
+
+          <div className="rounded-md border border-border bg-secondary/40 p-4">
+            <div className="flex min-h-11 items-center justify-between gap-4">
+              <label htmlFor="extra-payment" className="text-sm font-semibold">
+                Extra one-time payment
+              </label>
+              <Switch
+                id="extra-payment"
+                checked={s.extraPayment}
+                onCheckedChange={(checked) => patch({ extraPayment: checked })}
+                aria-label="Extra one-time payment"
+              />
+            </div>
+            {s.extraPayment && (
+              <div className="mt-4 space-y-6 border-t border-border pt-4">
+                <NumberSlider
+                  label="Extra payment amount"
+                  value={s.extraAmount}
+                  onChange={(v) => patch({ extraAmount: v })}
+                  min={0}
+                  max={200000 * scale}
+                  step={1000 * scale}
+                  suffix={symbol}
+                  suffixPosition="left"
+                />
+                <NumberSlider
+                  label="Paid in year"
+                  value={s.extraYear}
+                  onChange={(v) => patch({ extraYear: v })}
+                  min={1}
+                  max={Math.max(1, Math.ceil(solved.months / 12))}
+                  step={1}
+                  suffix="year"
+                />
+              </div>
+            )}
+          </div>
         </Panel>
       </div>
 
@@ -280,7 +334,7 @@ function Mortgage() {
             )}
 
             <Panel title="Payments over time">
-              <PaymentBreakdownChart rows={current.rows} />
+              <PaymentBreakdownChart rows={withExtra.rows} />
               <div className="mt-4 flex items-center gap-5 text-xs text-muted-foreground">
                 <span className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-sm bg-primary" /> Principal
@@ -290,6 +344,37 @@ function Mortgage() {
                 </span>
               </div>
             </Panel>
+
+            {s.extraPayment && (
+              <Panel title="Impact of the extra payment">
+                <div className="grid gap-5 sm:grid-cols-3">
+                  <div className="border-t border-border pt-4">
+                    <p className="text-xs text-muted-foreground">Interest saved</p>
+                    <p className="tnum mt-1 whitespace-nowrap text-xl font-semibold text-primary">
+                      {money(interestSaved)}
+                    </p>
+                  </div>
+                  <div className="border-t border-border pt-4">
+                    <p className="text-xs text-muted-foreground">Paid off earlier by</p>
+                    <p className="tnum mt-1 whitespace-nowrap text-xl font-semibold">
+                      {monthsSaved >= 12
+                        ? `${Math.floor(monthsSaved / 12)}y ${monthsSaved % 12}m`
+                        : `${monthsSaved}m`}
+                    </p>
+                  </div>
+                  <div className="border-t border-border pt-4">
+                    <p className="text-xs text-muted-foreground">New total interest</p>
+                    <p className="tnum mt-1 whitespace-nowrap text-xl font-semibold">
+                      {money(withExtra.totalInterest)}
+                    </p>
+                  </div>
+                </div>
+                <p className="mt-5 text-xs text-muted-foreground">
+                  A one-time payment of {money(s.extraAmount)} in year {Math.round(s.extraYear)},
+                  keeping the same monthly payment.
+                </p>
+              </Panel>
+            )}
 
             {s.compareRate && (
               <Panel title="Remaining balance over time">
