@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as InvestRouteImport } from './routes/invest'
 import { Route as MortgageRouteImport } from './routes/mortgage'
+import { Route as PlanRouteImport } from './routes/plan'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +35,25 @@ const MortgageRoute = MortgageRouteImport.update({
   path: '/mortgage',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlanRoute = PlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/invest': typeof InvestRoute
   '/mortgage': typeof MortgageRoute
+  '/plan': typeof PlanRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/invest': typeof InvestRoute
   '/mortgage': typeof MortgageRoute
+  '/plan': typeof PlanRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/invest': typeof InvestRoute
   '/mortgage': typeof MortgageRoute
+  '/plan': typeof PlanRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/invest' | '/mortgage'
+  fullPaths: '/' | '/dashboard' | '/invest' | '/mortgage' | '/plan'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/invest' | '/mortgage'
-  id: '__root__' | '/' | '/dashboard' | '/invest' | '/mortgage'
+  to: '/' | '/dashboard' | '/invest' | '/mortgage' | '/plan'
+  id: '__root__' | '/' | '/dashboard' | '/invest' | '/mortgage' | '/plan'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +76,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   InvestRoute: typeof InvestRoute
   MortgageRoute: typeof MortgageRoute
+  PlanRoute: typeof PlanRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +109,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MortgageRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/plan': {
+      id: '/plan'
+      path: '/plan'
+      fullPath: '/plan'
+      preLoaderRoute: typeof PlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   InvestRoute: InvestRoute,
   MortgageRoute: MortgageRoute,
+  PlanRoute: PlanRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
