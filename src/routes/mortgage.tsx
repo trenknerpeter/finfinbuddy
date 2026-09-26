@@ -47,6 +47,9 @@ const DEFAULTS = {
   newRate: 5,
   solveTerm: false,
   compareRate: false,
+  extraPayment: false,
+  extraAmount: 10000,
+  extraYear: 3,
 };
 
 function Mortgage() {
