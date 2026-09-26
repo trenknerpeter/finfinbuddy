@@ -109,11 +109,11 @@ function Questionnaire({
   const [answers, setAnswers] = useState<PlanProfile>(
     initial ?? { age: 35, stop: 60, spend: 2500, pot: 25000, save: 500 },
   );
-  const [text, setText] = useState(String(initial?.age ?? QUESTIONS[0].def));
+  const [text, setText] = useState(String(initial?.age ?? QUESTIONS[0]!.def));
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const q = QUESTIONS[step];
+  const q = QUESTIONS[step]!;
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -122,7 +122,7 @@ function Questionnaire({
 
   const goTo = (next: number, currentAnswers: PlanProfile) => {
     setStep(next);
-    setText(String(currentAnswers[QUESTIONS[next].key]));
+    setText(String(currentAnswers[QUESTIONS[next]!.key]));
     setError(null);
   };
 
