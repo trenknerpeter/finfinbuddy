@@ -334,7 +334,7 @@ function Mortgage() {
             )}
 
             <Panel title="Payments over time">
-              <PaymentBreakdownChart rows={current.rows} />
+              <PaymentBreakdownChart rows={withExtra.rows} />
               <div className="mt-4 flex items-center gap-5 text-xs text-muted-foreground">
                 <span className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-sm bg-primary" /> Principal
