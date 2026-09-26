@@ -211,6 +211,43 @@ function Mortgage() {
               </div>
             )}
           </div>
+
+          <div className="rounded-md border border-border bg-secondary/40 p-4">
+            <div className="flex min-h-11 items-center justify-between gap-4">
+              <label htmlFor="extra-payment" className="text-sm font-semibold">
+                Extra one-time payment
+              </label>
+              <Switch
+                id="extra-payment"
+                checked={s.extraPayment}
+                onCheckedChange={(checked) => patch({ extraPayment: checked })}
+                aria-label="Extra one-time payment"
+              />
+            </div>
+            {s.extraPayment && (
+              <div className="mt-4 space-y-6 border-t border-border pt-4">
+                <NumberSlider
+                  label="Extra payment amount"
+                  value={s.extraAmount}
+                  onChange={(v) => patch({ extraAmount: v })}
+                  min={0}
+                  max={200000 * scale}
+                  step={1000 * scale}
+                  suffix={symbol}
+                  suffixPosition="left"
+                />
+                <NumberSlider
+                  label="Paid in year"
+                  value={s.extraYear}
+                  onChange={(v) => patch({ extraYear: v })}
+                  min={1}
+                  max={Math.max(1, Math.ceil(solved.months / 12))}
+                  step={1}
+                  suffix="year"
+                />
+              </div>
+            )}
+          </div>
         </Panel>
       </div>
 
