@@ -8,8 +8,8 @@ type Props = {
   min: number;
   max: number;
   step: number;
-  suffix?: string;
-  suffixPosition?: "left" | "right";
+  suffix?: string | undefined;
+  suffixPosition?: "left" | "right" | undefined;
 };
 
 export function NumberSlider({
