@@ -400,6 +400,17 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
             <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-semibold leading-tight tracking-tight">
               On this path, you don't reach your number.
             </h1>
+          ) : early ? (
+            <>
+              <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-semibold leading-tight tracking-tight text-primary">
+                You can stop working at {reachedAge} — {yearsEarly}{" "}
+                {yearsEarly === 1 ? "year" : "years"} early.
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                That's ahead of your target of {levers.stop}. Keep going until {levers.stop} and
+                you'd have about {money(surplusAtStop)} more than your number.
+              </p>
+            </>
           ) : onTrack ? (
             <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-semibold leading-tight tracking-tight text-primary">
               You're on track to stop working at {levers.stop}.
