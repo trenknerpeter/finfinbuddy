@@ -376,14 +376,17 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
   const solveRet = requiredReturn(profile, assumptions, baseTarget);
 
   const alreadyFunded = isFinite(target) && plan.pot >= target;
-  const onTrack = !alreadyFunded && reachedAge !== null && reachedAge <= levers.stop;
+  const early = !alreadyFunded && reachedAge !== null && reachedAge < levers.stop;
+  const onTrack = !alreadyFunded && reachedAge !== null && reachedAge === levers.stop;
   const unreachable = !alreadyFunded && reachedAge === null;
+  const yearsEarly = early ? levers.stop - (reachedAge ?? levers.stop) : 0;
+  const surplusAtStop = early ? potAtStop - target : 0;
 
   const leversDirty =
     levers.save !== plan.save ||
     levers.stop !== plan.stop ||
     levers.spend !== plan.spend ||
-    levers.ret !== plan.ret;
+    levers.ret !== assumptions.ret;
 
   return (
     <div className="space-y-8">
@@ -397,6 +400,17 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
             <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-semibold leading-tight tracking-tight">
               On this path, you don't reach your number.
             </h1>
+          ) : early ? (
+            <>
+              <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-semibold leading-tight tracking-tight text-primary">
+                You can stop working at {reachedAge} — {yearsEarly}{" "}
+                {yearsEarly === 1 ? "year" : "years"} early.
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                That's ahead of your target of {levers.stop}. Keep going until {levers.stop} and
+                you'd have about {money(surplusAtStop)} more than your number.
+              </p>
+            </>
           ) : onTrack ? (
             <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-semibold leading-tight tracking-tight text-primary">
               You're on track to stop working at {levers.stop}.
@@ -477,7 +491,7 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
             <button
               type="button"
               onClick={() =>
-                setLevers({ save: plan.save, stop: plan.stop, spend: plan.spend, ret: plan.ret })
+                setLevers({ save: plan.save, stop: plan.stop, spend: plan.spend, ret: assumptions.ret })
               }
               className="text-sm text-muted-foreground underline-offset-4 hover:underline"
             >
@@ -526,7 +540,7 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
           />
           <LeverCard
             title="Higher returns"
-            now={percent(plan.ret)}
+            now={percent(assumptions.ret)}
             solved={solveRet}
             solvedLabel={solveRet !== null ? `≈${percent(solveRet)}` : "—"}
             value={levers.ret}
