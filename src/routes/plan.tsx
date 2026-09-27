@@ -376,14 +376,17 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
   const solveRet = requiredReturn(profile, assumptions, baseTarget);
 
   const alreadyFunded = isFinite(target) && plan.pot >= target;
-  const onTrack = !alreadyFunded && reachedAge !== null && reachedAge <= levers.stop;
+  const early = !alreadyFunded && reachedAge !== null && reachedAge < levers.stop;
+  const onTrack = !alreadyFunded && reachedAge !== null && reachedAge === levers.stop;
   const unreachable = !alreadyFunded && reachedAge === null;
+  const yearsEarly = early ? levers.stop - (reachedAge ?? levers.stop) : 0;
+  const surplusAtStop = early ? potAtStop - target : 0;
 
   const leversDirty =
     levers.save !== plan.save ||
     levers.stop !== plan.stop ||
     levers.spend !== plan.spend ||
-    levers.ret !== plan.ret;
+    levers.ret !== assumptions.ret;
 
   return (
     <div className="space-y-8">
