@@ -24,6 +24,7 @@ function CurrencySelect() {
 const TABS = [
   { label: "Invest", to: "/invest" },
   { label: "Mortgage", to: "/mortgage" },
+  { label: "Plan", to: "/plan" },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
