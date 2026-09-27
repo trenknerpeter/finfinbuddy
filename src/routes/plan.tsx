@@ -428,11 +428,19 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
             </>
           )}
         </div>
-        <button
-          type="button"
-          onClick={onEdit}
-          className="shrink-0 rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
+        <div className="flex shrink-0 items-center gap-2 print:hidden">
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Save as PDF
+          </button>
+          <button
+            type="button"
+            onClick={onEdit}
+            className="rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
           Edit answers
         </button>
       </div>
