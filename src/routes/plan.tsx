@@ -491,7 +491,7 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
             <button
               type="button"
               onClick={() =>
-                setLevers({ save: plan.save, stop: plan.stop, spend: plan.spend, ret: plan.ret })
+                setLevers({ save: plan.save, stop: plan.stop, spend: plan.spend, ret: assumptions.ret })
               }
               className="text-sm text-muted-foreground underline-offset-4 hover:underline"
             >
@@ -540,7 +540,7 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
           />
           <LeverCard
             title="Higher returns"
-            now={percent(plan.ret)}
+            now={percent(assumptions.ret)}
             solved={solveRet}
             solvedLabel={solveRet !== null ? `≈${percent(solveRet)}` : "—"}
             value={levers.ret}
