@@ -493,7 +493,7 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
         </div>
       </Panel>
 
-      <div>
+      <div className="print:hidden">
         <div className="mb-4 flex items-center justify-between gap-4">
           <h2 className="text-sm font-semibold tracking-tight">Four ways to close the gap</h2>
           {leversDirty && (
