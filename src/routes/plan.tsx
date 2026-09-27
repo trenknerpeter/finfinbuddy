@@ -441,8 +441,9 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
             onClick={onEdit}
             className="rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-          Edit answers
-        </button>
+            Edit answers
+          </button>
+        </div>
       </div>
 
       <Panel>
