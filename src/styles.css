@@ -84,3 +84,19 @@
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
+
+/* Print / Save-as-PDF: strip app chrome, keep the plan summary clean. */
+@media print {
+  header,
+  nav {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  @page {
+    margin: 14mm;
+  }
+}

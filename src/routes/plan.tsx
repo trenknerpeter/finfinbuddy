@@ -428,13 +428,22 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
             </>
           )}
         </div>
-        <button
-          type="button"
-          onClick={onEdit}
-          className="shrink-0 rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Edit answers
-        </button>
+        <div className="flex shrink-0 items-center gap-2 print:hidden">
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Save as PDF
+          </button>
+          <button
+            type="button"
+            onClick={onEdit}
+            className="rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Edit answers
+          </button>
+        </div>
       </div>
 
       <Panel>
@@ -484,7 +493,7 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
         </div>
       </Panel>
 
-      <div>
+      <div className="print:hidden">
         <div className="mb-4 flex items-center justify-between gap-4">
           <h2 className="text-sm font-semibold tracking-tight">Four ways to close the gap</h2>
           {leversDirty && (
@@ -554,7 +563,7 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
         </div>
       </div>
 
-      <Panel className="py-2">
+      <Panel className="py-2 print:hidden">
         <Accordion type="single" collapsible>
           <AccordionItem value="assumptions" className="border-none">
             <AccordionTrigger className="text-sm font-semibold hover:no-underline">
@@ -603,6 +612,54 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
           </AccordionItem>
         </Accordion>
       </Panel>
+
+      {/* Print-only summary: the inputs and assumptions behind the numbers above. */}
+      <div className="hidden print:block">
+        <div className="rounded-lg border border-border p-6">
+          <p className="text-sm font-semibold tracking-tight">Your inputs</p>
+          <dl className="tnum mt-3 grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">Age</dt>
+              <dd>{plan.age}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">Target age</dt>
+              <dd>{levers.stop}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">Monthly spending</dt>
+              <dd>{money(levers.spend)}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">Saved today</dt>
+              <dd>{money(plan.pot)}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">Monthly saving</dt>
+              <dd>{money(levers.save)}</dd>
+            </div>
+          </dl>
+          <p className="mt-5 text-sm font-semibold tracking-tight">Assumptions</p>
+          <dl className="tnum mt-3 grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">Annual return</dt>
+              <dd>{percent(levers.ret)}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">Withdrawal rate</dt>
+              <dd>{percent(assumptions.wd)}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">Inflation</dt>
+              <dd>{percent(assumptions.infl)}</dd>
+            </div>
+          </dl>
+          <p className="mt-5 text-xs text-muted-foreground">
+            All figures in today's money. Made with FinBuddy ·{" "}
+            {new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
+          </p>
+        </div>
+      </div>
 
       <p className="pb-4 text-xs leading-relaxed text-muted-foreground">
         FinBuddy does arithmetic, not advice. These are projections based on assumptions you can
