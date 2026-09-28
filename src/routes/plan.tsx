@@ -53,16 +53,26 @@ const QUESTIONS: {
   key: QuestionKey;
   title: string;
   helper?: string;
+  detail: string;
   def: number;
   min: number;
   max: number;
   money?: boolean;
 }[] = [
-  { key: "age", title: "How old are you?", def: 35, min: 18, max: 75 },
+  {
+    key: "age",
+    title: "How old are you?",
+    helper: "Your current age sets how long your money has to grow.",
+    detail: "Use your age today, rounded to the nearest whole year.",
+    def: 35,
+    min: 18,
+    max: 75,
+  },
   {
     key: "stop",
     title: "At what age would you like to stop working?",
     helper: "Aiming early is fine — that's the point of working it out.",
+    detail: "This is your target, not a commitment. You can test other ages in your results.",
     def: 60,
     min: 19,
     max: 85,
@@ -71,6 +81,7 @@ const QUESTIONS: {
     key: "spend",
     title: "How much would you need each month to live on?",
     helper: "In today's money — what your life costs now is usually a good guide.",
+    detail: "Include regular living costs and room for the lifestyle you want. Leave out savings contributions.",
     def: 2500,
     min: 0,
     max: 1000000,
@@ -80,6 +91,7 @@ const QUESTIONS: {
     key: "pot",
     title: "How much do you have saved or invested today?",
     helper: "Everything you'd count towards this: investments, savings, pension pots.",
+    detail: "Use money intended for your future. Avoid counting your home unless you plan to sell it.",
     def: 25000,
     min: 0,
     max: 100000000,
@@ -89,6 +101,7 @@ const QUESTIONS: {
     key: "save",
     title: "How much do you put aside each month?",
     helper: "Whatever you're actually managing right now, not the aspiration.",
+    detail: "Include regular investing and pension contributions that will continue until your target age.",
     def: 500,
     min: 0,
     max: 1000000,
@@ -201,6 +214,7 @@ function Questionnaire({
             className="tnum w-full bg-transparent text-4xl font-semibold tracking-tight outline-none"
           />
         </div>
+        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{q.detail}</p>
         {error && <p className="mt-3 text-sm text-muted-foreground">{error}</p>}
 
         <button
@@ -614,8 +628,8 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
       </Panel>
 
       {/* Print-only summary: the inputs and assumptions behind the numbers above. */}
-      <div className="hidden print:block">
-        <div className="rounded-lg border border-border p-6">
+      <div className="plan-print-summary hidden print:block">
+        <div className="plan-print-summary-card rounded-lg border border-border p-6">
           <p className="text-sm font-semibold tracking-tight">Your inputs</p>
           <dl className="tnum mt-3 grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
             <div className="flex justify-between gap-4">
@@ -659,9 +673,13 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
             {new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
           </p>
         </div>
+        <p className="plan-print-disclaimer mt-8 text-xs leading-relaxed text-muted-foreground">
+          FinBuddy does arithmetic, not advice. These are projections based on assumptions you can
+          change — not a prediction, and not a recommendation to buy or sell anything.
+        </p>
       </div>
 
-      <p className="pb-4 text-xs leading-relaxed text-muted-foreground">
+      <p className="pb-4 text-xs leading-relaxed text-muted-foreground print:hidden">
         FinBuddy does arithmetic, not advice. These are projections based on assumptions you can
         change — not a prediction, and not a recommendation to buy or sell anything.
       </p>

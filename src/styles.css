@@ -96,6 +96,17 @@
     background: #fff;
   }
 
+  .plan-print-summary {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  .plan-print-summary-card,
+  .plan-print-disclaimer {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
   @page {
     margin: 14mm;
   }
