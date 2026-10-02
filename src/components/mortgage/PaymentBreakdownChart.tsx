@@ -9,9 +9,11 @@ import {
 } from "recharts";
 import type { MortgageYear } from "@/lib/finance";
 import { useFormatters } from "@/lib/currency";
+import { useT } from "@/lib/i18n";
 
 export function PaymentBreakdownChart({ rows }: { rows: MortgageYear[] }) {
   const { money, compact } = useFormatters();
+  const { t } = useT();
 
   return (
     <div className="h-[340px] w-full">
@@ -40,14 +42,14 @@ export function PaymentBreakdownChart({ rows }: { rows: MortgageYear[] }) {
               const row = payload[0]?.payload as MortgageYear;
               return (
                 <div className="rounded-md border border-border bg-card p-3 text-xs">
-                  <p className="mb-2 font-semibold">Year {label}</p>
+                  <p className="mb-2 font-semibold">{t("Year {n}", { n: String(label) })}</p>
                   <dl className="tnum space-y-1">
                     <div className="flex justify-between gap-6">
-                      <dt className="text-muted-foreground">Principal</dt>
+                      <dt className="text-muted-foreground">{t("Principal")}</dt>
                       <dd className="font-medium">{money(row.principalPaid)}</dd>
                     </div>
                     <div className="flex justify-between gap-6">
-                      <dt className="text-muted-foreground">Interest</dt>
+                      <dt className="text-muted-foreground">{t("Interest")}</dt>
                       <dd className="font-medium">{money(row.interestPaid)}</dd>
                     </div>
                   </dl>

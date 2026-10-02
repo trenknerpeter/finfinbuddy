@@ -2,14 +2,32 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { CURRENCIES, isCurrency, useCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
+import { isLangValue, useLang, useT } from "@/lib/i18n";
+
+function LangSelect() {
+  const { lang, setLang } = useLang();
+  const { t } = useT();
+  return (
+    <select
+      value={lang}
+      onChange={(e) => isLangValue(e.target.value) && setLang(e.target.value)}
+      aria-label={t("Language")}
+      className="h-9 rounded-md border border-border bg-card px-2 text-sm font-medium text-foreground outline-none focus:border-primary"
+    >
+      <option value="en">EN</option>
+      <option value="cs">CZ</option>
+    </select>
+  );
+}
 
 function CurrencySelect() {
   const { currency, setCurrency } = useCurrency();
+  const { t } = useT();
   return (
     <select
       value={currency}
       onChange={(e) => isCurrency(e.target.value) && setCurrency(e.target.value)}
-      aria-label="Currency"
+      aria-label={t("Currency")}
       className="h-9 rounded-md border border-border bg-card px-2 text-sm font-medium text-foreground outline-none focus:border-primary"
     >
       {CURRENCIES.map((c) => (
@@ -28,6 +46,7 @@ const TABS = [
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const { t } = useT();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
@@ -38,7 +57,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="size-2 rounded-full bg-primary" />
             <span className="text-base font-semibold tracking-tight">FinBuddy</span>
           </div>
-          <CurrencySelect />
+          <div className="flex items-center gap-2">
+            <LangSelect />
+            <CurrencySelect />
+          </div>
         </div>
         <div className="mx-auto max-w-[1200px] px-5">
           <nav className="flex items-center gap-7">
@@ -55,7 +77,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       : "border-transparent text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  {tab.label}
+                  {t(tab.label)}
                 </Link>
               );
             })}
@@ -63,9 +85,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               aria-disabled="true"
               className="-mb-px flex h-11 cursor-not-allowed items-center gap-2 border-b-2 border-transparent text-sm text-foreground opacity-40"
             >
-              Dashboard
+              {t("Dashboard")}
               <span className="rounded-full border border-border px-1.5 py-0.5 text-[10px] uppercase tracking-wide">
-                Soon
+                {t("Soon")}
               </span>
             </span>
           </nav>

@@ -9,6 +9,7 @@ import { InvestChart } from "@/components/invest/InvestChart";
 import { useCurrencyScale, useFormatters } from "@/lib/currency";
 import { computeInvest } from "@/lib/finance";
 import { useScenario } from "@/lib/useScenario";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/invest")({
   head: () => ({
@@ -85,6 +86,7 @@ function Invest() {
   const [s, patch] = useScenario("finbuddy.invest", DEFAULTS);
   const { money, percent, symbol } = useFormatters();
   const scale = useCurrencyScale();
+  const { t, count } = useT();
 
   const result = useMemo(
     () =>
@@ -109,7 +111,7 @@ function Invest() {
       <div className="lg:sticky lg:top-32 lg:self-start">
         <Panel className="space-y-6">
           <NumberSlider
-            label="Initial amount"
+            label={t("Initial amount")}
             value={s.initial}
             onChange={(v) => patch({ initial: v })}
             min={0}
@@ -119,7 +121,7 @@ function Invest() {
             suffixPosition="left"
           />
           <NumberSlider
-            label="Monthly contribution"
+            label={t("Monthly contribution")}
             value={s.monthly}
             onChange={(v) => patch({ monthly: v })}
             min={0}
@@ -129,7 +131,7 @@ function Invest() {
             suffixPosition="left"
           />
           <NumberSlider
-            label="Expected annual return"
+            label={t("Expected annual return")}
             value={s.rate}
             onChange={(v) => patch({ rate: v })}
             min={0}
@@ -138,26 +140,26 @@ function Invest() {
             suffix="%"
           />
           <NumberSlider
-            label="Investment period"
+            label={t("Investment period")}
             value={s.years}
             onChange={(v) => patch({ years: v })}
             min={1}
             max={40}
             step={1}
-            suffix="years"
+            suffix={t("years")}
           />
 
           <div className="border-t border-border pt-6">
             <div className="flex items-center justify-between gap-4">
               <label htmlFor="real" className="text-sm text-muted-foreground">
-                Show in today's money
+                {t("Show in today's money")}
               </label>
               <Switch id="real" checked={s.real} onCheckedChange={(v) => patch({ real: v })} />
             </div>
             {s.real && (
               <div className="mt-6">
                 <NumberSlider
-                  label="Inflation rate"
+                  label={t("Inflation rate")}
                   value={s.inflation}
                   onChange={(v) => patch({ inflation: v })}
                   min={0}
@@ -174,9 +176,9 @@ function Invest() {
       <div className="space-y-8">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">Investment projection</h1>
+            <h1 className="text-xl font-semibold tracking-tight">{t("Investment projection")}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {Math.round(s.years)} years at {percent(s.rate)} a year, compounded monthly.
+              {t("{years} at {rate} a year, compounded monthly.", { years: count(Math.round(s.years), "year"), rate: percent(s.rate) })}
             </p>
           </div>
           <CopyLinkButton />
@@ -185,7 +187,7 @@ function Invest() {
         {emptyState ? (
           <Panel>
             <p className="text-sm text-muted-foreground">
-              Set an investment period of at least one year to see a projection.
+              {t("Set an investment period of at least one year to see a projection.")}
             </p>
           </Panel>
         ) : (
@@ -198,53 +200,52 @@ function Invest() {
                     : "lg:grid-cols-[1.5fr_1fr_1.1fr]"
                 }`}
               >
-                <Kpi label="Final value" value={money(result.finalValue)} headline />
-                <Kpi label="Total contributed" value={money(result.totalContributed)} />
+                <Kpi label={t("Final value")} value={money(result.finalValue)} headline />
+                <Kpi label={t("Total contributed")} value={money(result.totalContributed)} />
                 <Kpi
-                  label="Total growth"
+                  label={t("Total growth")}
                   value={money(result.totalGrowth)}
                   accent
-                  caption={`${(result.growthShare * 100).toFixed(0)}% of the final value`}
+                  caption={t("{p}% of the final value", { p: (result.growthShare * 100).toFixed(0) })}
                 />
                 {s.real && (
                   <Kpi
-                    label="In today's money"
+                    label={t("In today's money")}
                     value={money(result.realValue)}
-                    caption={`At ${percent(s.inflation)} inflation`}
+                    caption={t("At {p} inflation", { p: percent(s.inflation) })}
                   />
                 )}
               </div>
             </Panel>
 
-            <Panel title="Growth over time">
+            <Panel title={t("Growth over time")}>
               <InvestChart rows={result.rows} />
               <div className="mt-4 flex items-center gap-5 text-xs text-muted-foreground">
                 <span className="flex items-center gap-2">
-                  <span className="size-2.5 rounded-sm bg-neutral-fill" /> Money you put in
+                  <span className="size-2.5 rounded-sm bg-neutral-fill" /> {t("Money you put in")}
                 </span>
                 <span className="flex items-center gap-2">
-                  <span className="size-2.5 rounded-sm bg-primary/30 ring-1 ring-primary" /> Growth
+                  <span className="size-2.5 rounded-sm bg-primary/30 ring-1 ring-primary" /> {t("Growth")}
                 </span>
               </div>
             </Panel>
 
-            <Panel title="What it pays you">
+            <Panel title={t("What it pays you")}>
               <p className="-mt-3 mb-5 text-sm leading-relaxed text-muted-foreground">
-                Once the {Math.round(s.years)} years are up, this is what you could take out each
-                year without touching the rest.
+                {t("Once the {years} are up, this is what you could take out each year without touching the rest.", { years: count(Math.round(s.years), "year") })}
               </p>
               <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
                 <div className="space-y-6">
                   <div>
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                      Invested amount
+                      {t("Invested amount")}
                     </p>
                     <p className="tnum mt-1.5 whitespace-nowrap text-[clamp(1.125rem,1.6vw,1.5rem)] font-semibold leading-tight">
                       {money(result.finalValue)}
                     </p>
                   </div>
                   <NumberSlider
-                    label="Withdrawal rate"
+                    label={t("Withdrawal rate")}
                     value={s.withdrawRate}
                     onChange={(v) => patch({ withdrawRate: v })}
                     min={0}
@@ -274,41 +275,40 @@ function Invest() {
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div className="min-w-0 rounded-lg border border-border p-5">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                      Per month
+                      {t("Per month")}
                     </p>
                     <p className="tnum mt-1.5 whitespace-nowrap text-[clamp(1.375rem,1.9vw,2rem)] font-semibold leading-tight text-primary">
                       {money(monthlyIncome)}
                     </p>
                     <p className="mt-1.5 text-xs text-muted-foreground">
-                      {percent(s.withdrawRate)} a year, split over 12 months
+                      {t("{p} a year, split over 12 months", { p: percent(s.withdrawRate) })}
                     </p>
                     {s.real && (
                       <p className="tnum mt-3 border-t border-border pt-3 text-xs text-muted-foreground">
-                        {money(monthlyIncome / inflationFactor)} in today's money
+                        {t("{v} in today's money", { v: money(monthlyIncome / inflationFactor) })}
                       </p>
                     )}
                   </div>
                   <div className="min-w-0 rounded-lg border border-border p-5">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                      Per year
+                      {t("Per year")}
                     </p>
                     <p className="tnum mt-1.5 whitespace-nowrap text-[clamp(1.125rem,1.6vw,1.625rem)] font-semibold leading-tight">
                       {money(yearlyIncome)}
                     </p>
                     <p className="mt-1.5 text-xs text-muted-foreground">
-                      {money(result.finalValue)} stays invested
+                      {t("{v} stays invested", { v: money(result.finalValue) })}
                     </p>
                     {s.real && (
                       <p className="tnum mt-3 border-t border-border pt-3 text-xs text-muted-foreground">
-                        {money(yearlyIncome / inflationFactor)} in today's money
+                        {t("{v} in today's money", { v: money(yearlyIncome / inflationFactor) })}
                       </p>
                     )}
                   </div>
                 </div>
               </div>
               <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
-                Assumes the pot keeps earning at least the rate you take out, so the balance holds
-                steady. Take out more than it earns and it will shrink over time.
+                {t("Assumes the pot keeps earning at least the rate you take out, so the balance holds steady. Take out more than it earns and it will shrink over time.")}
               </p>
             </Panel>
 
@@ -316,18 +316,18 @@ function Invest() {
               <Accordion type="single" collapsible>
                 <AccordionItem value="years" className="border-none">
                   <AccordionTrigger className="text-sm font-semibold hover:no-underline">
-                    Year by year
+                    {t("Year by year")}
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="max-h-[420px] overflow-auto">
                       <table className="w-full text-sm">
                         <thead className="sticky top-0 bg-card text-xs uppercase tracking-wide text-muted-foreground">
                           <tr className="border-b border-border">
-                            <th className="py-2 text-left font-normal">Year</th>
-                            <th className="py-2 text-right font-normal">Contributed</th>
-                            <th className="py-2 text-right font-normal">Total contributed</th>
-                            <th className="py-2 text-right font-normal">Growth</th>
-                            <th className="py-2 text-right font-normal">Balance</th>
+                            <th className="py-2 text-left font-normal">{t("Year")}</th>
+                            <th className="py-2 text-right font-normal">{t("Contributed")}</th>
+                            <th className="py-2 text-right font-normal">{t("Total contributed")}</th>
+                            <th className="py-2 text-right font-normal">{t("Growth")}</th>
+                            <th className="py-2 text-right font-normal">{t("Balance")}</th>
                           </tr>
                         </thead>
                         <tbody className="tnum">

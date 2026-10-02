@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Check, Link2 } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 export function CopyLinkButton() {
   const [copied, setCopied] = useState(false);
+  const { t } = useT();
 
   const copy = async () => {
     try {
@@ -24,7 +26,7 @@ export function CopyLinkButton() {
       ) : (
         <Link2 className="size-4" />
       )}
-      {copied ? "Copied" : "Copy link"}
+      {copied ? t("Copied") : t("Copy link")}
     </button>
   );
 }

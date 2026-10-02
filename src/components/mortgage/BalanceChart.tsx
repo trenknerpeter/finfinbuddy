@@ -1,5 +1,6 @@
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useFormatters } from "@/lib/currency";
+import { useT } from "@/lib/i18n";
 
 export function BalanceChart({
   current,
@@ -9,6 +10,7 @@ export function BalanceChart({
   whatIf: number[];
 }) {
   const { money, compact } = useFormatters();
+  const { t } = useT();
   const length = Math.max(current.length, whatIf.length);
   const data = Array.from({ length }, (_, i) => ({
     year: i,
@@ -43,14 +45,14 @@ export function BalanceChart({
               const p = payload[0]?.payload as (typeof data)[number];
               return (
                 <div className="rounded-md border border-border bg-card p-3 text-xs">
-                  <p className="mb-2 font-semibold">Year {label}</p>
+                  <p className="mb-2 font-semibold">{t("Year {n}", { n: String(label) })}</p>
                   <dl className="tnum space-y-1">
                     <div className="flex justify-between gap-6">
-                      <dt className="text-muted-foreground">Current</dt>
+                      <dt className="text-muted-foreground">{t("Current")}</dt>
                       <dd className="font-medium">{money(p.current)}</dd>
                     </div>
                     <div className="flex justify-between gap-6">
-                      <dt className="text-muted-foreground">What-if</dt>
+                      <dt className="text-muted-foreground">{t("What-if")}</dt>
                       <dd className="text-primary">{money(p.whatIf)}</dd>
                     </div>
                   </dl>
