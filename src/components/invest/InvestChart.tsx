@@ -1,9 +1,11 @@
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { InvestYear } from "@/lib/finance";
 import { useFormatters } from "@/lib/currency";
+import { useT } from "@/lib/i18n";
 
 export function InvestChart({ rows }: { rows: InvestYear[] }) {
   const { money, compact } = useFormatters();
+  const { t } = useT();
 
   const data = rows.map((r) => ({
     year: r.year,
@@ -39,18 +41,18 @@ export function InvestChart({ rows }: { rows: InvestYear[] }) {
               const p = payload[0]?.payload as (typeof data)[number];
               return (
                 <div className="rounded-md border border-border bg-card p-3 text-xs">
-                  <p className="mb-2 font-semibold">Year {label}</p>
+                  <p className="mb-2 font-semibold">{t("Year {n}", { n: String(label) })}</p>
                   <dl className="tnum space-y-1">
                     <div className="flex justify-between gap-6">
-                      <dt className="text-muted-foreground">Total</dt>
+                      <dt className="text-muted-foreground">{t("Total")}</dt>
                       <dd className="font-medium">{money(p.total)}</dd>
                     </div>
                     <div className="flex justify-between gap-6">
-                      <dt className="text-muted-foreground">Contributed</dt>
+                      <dt className="text-muted-foreground">{t("Contributed")}</dt>
                       <dd>{money(p.contributed)}</dd>
                     </div>
                     <div className="flex justify-between gap-6">
-                      <dt className="text-muted-foreground">Growth</dt>
+                      <dt className="text-muted-foreground">{t("Growth")}</dt>
                       <dd className="text-primary">{money(p.growth)}</dd>
                     </div>
                   </dl>

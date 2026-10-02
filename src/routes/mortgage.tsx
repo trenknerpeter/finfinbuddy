@@ -17,6 +17,7 @@ import { useCurrencyScale, useFormatters } from "@/lib/currency";
 import { buildScenario, solveMonths, solvePayment } from "@/lib/finance";
 import { useScenario } from "@/lib/useScenario";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/mortgage")({
   head: () => ({
@@ -56,6 +57,7 @@ function Mortgage() {
   const [s, patch] = useScenario("finbuddy.mortgage", DEFAULTS);
   const { money, signedMoney, percent, symbol } = useFormatters();
   const scale = useCurrencyScale();
+  const { t, count } = useT();
   const [tableScenario, setTableScenario] = useState<"current" | "whatIf">("current");
 
   const solved = useMemo(() => {
@@ -117,14 +119,14 @@ function Mortgage() {
       <div className="lg:sticky lg:top-32 lg:self-start">
         <Panel className="space-y-6">
           <div>
-            <p className="mb-2 text-sm text-muted-foreground">Solve for</p>
+            <p className="mb-2 text-sm text-muted-foreground">{t("Solve for")}</p>
             <div className="flex rounded-md border border-border p-0.5">
               {[
                 { label: "Monthly payment", value: false },
                 { label: "Remaining term", value: true },
               ].map((opt) => (
                 <button
-                  key={opt.label}
+                  key={t(opt.label)}
                   onClick={() => patch({ solveTerm: opt.value })}
                   className={cn(
                     "h-9 flex-1 rounded text-sm transition-colors",
@@ -133,18 +135,17 @@ function Mortgage() {
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  {opt.label}
+                  {t(opt.label)}
                 </button>
               ))}
             </div>
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              Enter what you know. If the payment we calculate doesn't match your real one, switch
-              to "Remaining term" and enter your actual payment instead.
+              {t('Enter what you know. If the payment we calculate doesn\'t match your real one, switch to "Remaining term" and enter your actual payment instead.')}
             </p>
           </div>
 
           <NumberSlider
-            label="Remaining principal"
+            label={t("Remaining principal")}
             value={s.principal}
             onChange={(v) => patch({ principal: v })}
             min={0}
@@ -154,7 +155,7 @@ function Mortgage() {
             suffixPosition="left"
           />
           <NumberSlider
-            label="Current interest rate"
+            label={t("Current interest rate")}
             value={s.rate}
             onChange={(v) => patch({ rate: v })}
             min={0}
@@ -164,7 +165,7 @@ function Mortgage() {
           />
           {s.solveTerm ? (
             <NumberSlider
-              label="Current monthly payment"
+              label={t("Current monthly payment")}
               value={s.payment}
               onChange={(v) => patch({ payment: v })}
               min={0}
@@ -175,32 +176,32 @@ function Mortgage() {
             />
           ) : (
             <NumberSlider
-              label="Remaining term"
+              label={t("Remaining term")}
               value={s.years}
               onChange={(v) => patch({ years: v })}
               min={1}
               max={40}
               step={1}
-              suffix="years"
+              suffix={t("years")}
             />
           )}
 
           <div className="rounded-md border border-border bg-secondary/40 p-4">
             <div className="flex min-h-11 items-center justify-between gap-4">
               <label htmlFor="compare-rate" className="text-sm font-semibold">
-                Compare another rate
+                {t("Compare another rate")}
               </label>
               <Switch
                 id="compare-rate"
                 checked={s.compareRate}
                 onCheckedChange={(checked) => patch({ compareRate: checked })}
-                aria-label="Compare another interest rate"
+                aria-label={t("Compare another interest rate")}
               />
             </div>
             {s.compareRate && (
               <div className="mt-4 border-t border-border pt-4">
                 <NumberSlider
-                  label="New interest rate"
+                  label={t("New interest rate")}
                   value={s.newRate}
                   onChange={(v) => patch({ newRate: v })}
                   min={0}
@@ -215,19 +216,19 @@ function Mortgage() {
           <div className="rounded-md border border-border bg-secondary/40 p-4">
             <div className="flex min-h-11 items-center justify-between gap-4">
               <label htmlFor="extra-payment" className="text-sm font-semibold">
-                Extra one-time payment
+                {t("Extra one-time payment")}
               </label>
               <Switch
                 id="extra-payment"
                 checked={s.extraPayment}
                 onCheckedChange={(checked) => patch({ extraPayment: checked })}
-                aria-label="Extra one-time payment"
+                aria-label={t("Extra one-time payment")}
               />
             </div>
             {s.extraPayment && (
               <div className="mt-4 space-y-6 border-t border-border pt-4">
                 <NumberSlider
-                  label="Extra payment amount"
+                  label={t("Extra payment amount")}
                   value={s.extraAmount}
                   onChange={(v) => patch({ extraAmount: v })}
                   min={0}
@@ -237,13 +238,13 @@ function Mortgage() {
                   suffixPosition="left"
                 />
                 <NumberSlider
-                  label="Paid in year"
+                  label={t("Paid in year")}
                   value={s.extraYear}
                   onChange={(v) => patch({ extraYear: v })}
                   min={1}
                   max={Math.max(1, Math.ceil(solved.months / 12))}
                   step={1}
-                  suffix="year"
+                  suffix=""
                 />
               </div>
             )}
@@ -254,15 +255,10 @@ function Mortgage() {
       <div className="space-y-8">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">Rate change impact</h1>
+            <h1 className="text-xl font-semibold tracking-tight">{t("Rate change impact")}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {money(s.principal)} left
-              {!invalid && (
-                <>
-                  {" "}
-                  over {(solved.months / 12).toFixed(solved.months % 12 === 0 ? 0 : 1)} years
-                </>
-              )}
+              {t("{v} left", { v: money(s.principal) })}
+              {!invalid && t(" over {years}", { years: count(Number((solved.months / 12).toFixed(solved.months % 12 === 0 ? 0 : 1)), "year") })}
               .
             </p>
           </div>
@@ -272,7 +268,7 @@ function Mortgage() {
         {solved.warning && (
           <div className="flex items-start gap-3 rounded-md border border-negative/30 bg-negative/5 p-4 text-sm text-negative">
             <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-            <p>That payment doesn't cover the monthly interest — the balance would never go down.</p>
+            <p>{t("That payment doesn't cover the monthly interest — the balance would never go down.")}</p>
           </div>
         )}
 
@@ -280,21 +276,21 @@ function Mortgage() {
           !solved.warning && (
             <Panel>
               <p className="text-sm text-muted-foreground">
-                Enter a remaining term and principal to compare rates.
+                {t("Enter a remaining term and principal to compare rates.")}
               </p>
             </Panel>
           )
         ) : (
           <>
             {s.compareRate ? (
-              <Panel title="Current vs what-if">
+              <Panel title={t("Current vs what-if")}>
                 <div className="grid grid-cols-[1fr_auto_auto] items-center gap-x-6 gap-y-4 text-sm">
                   <div />
                   <div className="text-right text-xs uppercase tracking-wide text-muted-foreground">
-                    Now · {percent(s.rate)}
+                    {t("Now · {p}", { p: percent(s.rate) })}
                   </div>
                   <div className="text-right text-xs uppercase tracking-wide text-muted-foreground">
-                    What-if · {percent(s.newRate)}
+                    {t("What-if · {p}", { p: percent(s.newRate) })}
                   </div>
 
                   {[
@@ -303,7 +299,7 @@ function Mortgage() {
                     { label: "Total paid", a: current.totalPaid, b: whatIf.totalPaid },
                   ].map((row) => (
                     <div key={row.label} className="col-span-3 grid grid-cols-subgrid items-center border-t border-border pt-4">
-                      <span className="text-muted-foreground">{row.label}</span>
+                      <span className="text-muted-foreground">{t(row.label)}</span>
                       <span className="tnum text-right font-medium">{money(row.a)}</span>
                       <span className="flex items-center justify-end gap-2 text-right">
                         <span className="tnum font-medium">{money(row.b)}</span>
@@ -313,11 +309,11 @@ function Mortgage() {
                   ))}
                 </div>
                 <p className="mt-5 text-xs text-muted-foreground">
-                  Assumes the same remaining term — the monthly payment absorbs the rate change.
+                  {t("Assumes the same remaining term — the monthly payment absorbs the rate change.")}
                 </p>
               </Panel>
             ) : (
-              <Panel title="Your mortgage">
+              <Panel title={t("Your mortgage")}>
                 <div className="grid gap-5 sm:grid-cols-3">
                   {[
                     { label: "Monthly payment", value: current.monthly },
@@ -325,7 +321,7 @@ function Mortgage() {
                     { label: "Total paid", value: current.totalPaid },
                   ].map((item) => (
                     <div key={item.label} className="border-t border-border pt-4">
-                      <p className="text-xs text-muted-foreground">{item.label}</p>
+                      <p className="text-xs text-muted-foreground">{t(item.label)}</p>
                       <p className="tnum mt-1 whitespace-nowrap text-xl font-semibold">{money(item.value)}</p>
                     </div>
                   ))}
@@ -333,69 +329,68 @@ function Mortgage() {
               </Panel>
             )}
 
-            <Panel title="Payments over time">
+            <Panel title={t("Payments over time")}>
               <PaymentBreakdownChart rows={withExtra.rows} />
               <div className="mt-4 flex items-center gap-5 text-xs text-muted-foreground">
                 <span className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-sm bg-primary" /> Principal
+                  <span className="h-2.5 w-2.5 rounded-sm bg-primary" /> {t("Principal")}
                 </span>
                 <span className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-sm bg-foreground" /> Interest
+                  <span className="h-2.5 w-2.5 rounded-sm bg-foreground" /> {t("Interest")}
                 </span>
               </div>
             </Panel>
 
             {s.extraPayment && (
-              <Panel title="Impact of the extra payment">
+              <Panel title={t("Impact of the extra payment")}>
                 <div className="grid gap-5 sm:grid-cols-3">
                   <div className="border-t border-border pt-4">
-                    <p className="text-xs text-muted-foreground">Interest saved</p>
+                    <p className="text-xs text-muted-foreground">{t("Interest saved")}</p>
                     <p className="tnum mt-1 whitespace-nowrap text-xl font-semibold text-primary">
                       {money(interestSaved)}
                     </p>
                   </div>
                   <div className="border-t border-border pt-4">
-                    <p className="text-xs text-muted-foreground">Paid off earlier by</p>
+                    <p className="text-xs text-muted-foreground">{t("Paid off earlier by")}</p>
                     <p className="tnum mt-1 whitespace-nowrap text-xl font-semibold">
                       {monthsSaved >= 12
-                        ? `${Math.floor(monthsSaved / 12)}y ${monthsSaved % 12}m`
-                        : `${monthsSaved}m`}
+                        ? t("{y}y {m}m", { y: Math.floor(monthsSaved / 12), m: monthsSaved % 12 })
+                        : t("{m}m", { m: monthsSaved })}
                     </p>
                   </div>
                   <div className="border-t border-border pt-4">
-                    <p className="text-xs text-muted-foreground">New total interest</p>
+                    <p className="text-xs text-muted-foreground">{t("New total interest")}</p>
                     <p className="tnum mt-1 whitespace-nowrap text-xl font-semibold">
                       {money(withExtra.totalInterest)}
                     </p>
                   </div>
                 </div>
                 <p className="mt-5 text-xs text-muted-foreground">
-                  A one-time payment of {money(s.extraAmount)} in year {Math.round(s.extraYear)},
-                  keeping the same monthly payment.
+                  {t("A one-time payment of {v} in year {y}, keeping the same monthly payment.", { v: money(s.extraAmount), y: Math.round(s.extraYear) })}
                 </p>
               </Panel>
             )}
 
             {s.compareRate && (
-              <Panel title="Remaining balance over time">
+              <Panel title={t("Remaining balance over time")}>
                 <BalanceChart current={current.balanceByYear} whatIf={whatIf.balanceByYear} />
                 <div className="mt-4 flex items-center gap-5 text-xs text-muted-foreground">
                   <span className="flex items-center gap-2">
-                    <span className="h-0.5 w-5 bg-foreground" /> Now
+                    <span className="h-0.5 w-5 bg-foreground" /> {t("Now")}
                   </span>
                   <span className="flex items-center gap-2">
-                    <span className="h-0.5 w-5 border-t-2 border-dashed border-primary" /> What-if
+                    <span className="h-0.5 w-5 border-t-2 border-dashed border-primary" /> {t("What-if")}
                   </span>
                 </div>
               </Panel>
             )}
 
-            {s.compareRate && <Panel title="Total interest, compared">
+            {s.compareRate && <Panel title={t("Total interest, compared")}>
               <div className="space-y-6">
                 {[
-                  { label: `Now · ${percent(s.rate)}`, value: current.totalInterest, accent: false },
+                  { label: t("Now · {p}", { p: percent(s.rate) }), value: current.totalInterest, accent: false },
                   {
-                    label: `What-if · ${percent(s.newRate)}`,
+                    label: t("What-if · {p}", { p: percent(s.newRate) }),
                     value: whatIf.totalInterest,
                     accent: true,
                   },
@@ -432,7 +427,7 @@ function Mortgage() {
               <Accordion type="single" collapsible>
                 <AccordionItem value="years" className="border-none">
                   <AccordionTrigger className="text-sm font-semibold hover:no-underline">
-                    Year by year
+                    {t("Year by year")}
                   </AccordionTrigger>
                   <AccordionContent>
                     {s.compareRate && (
@@ -449,7 +444,7 @@ function Mortgage() {
                                 : "text-muted-foreground hover:text-foreground",
                             )}
                           >
-                            {v === "current" ? `Now · ${percent(s.rate)}` : `What-if · ${percent(s.newRate)}`}
+                            {v === "current" ? t("Now · {p}", { p: percent(s.rate) }) : t("What-if · {p}", { p: percent(s.newRate) })}
                           </button>
                         ))}
                       </div>
@@ -458,10 +453,10 @@ function Mortgage() {
                       <table className="w-full text-sm">
                         <thead className="sticky top-0 bg-card text-xs uppercase tracking-wide text-muted-foreground">
                           <tr className="border-b border-border">
-                            <th className="py-2 text-left font-normal">Year</th>
-                            <th className="py-2 text-right font-normal">Interest paid</th>
-                            <th className="py-2 text-right font-normal">Principal paid</th>
-                            <th className="py-2 text-right font-normal">Remaining balance</th>
+                            <th className="py-2 text-left font-normal">{t("Year")}</th>
+                            <th className="py-2 text-right font-normal">{t("Interest paid")}</th>
+                            <th className="py-2 text-right font-normal">{t("Principal paid")}</th>
+                            <th className="py-2 text-right font-normal">{t("Remaining balance")}</th>
                           </tr>
                         </thead>
                         <tbody className="tnum">

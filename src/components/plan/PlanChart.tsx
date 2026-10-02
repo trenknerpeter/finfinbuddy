@@ -11,6 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import { useFormatters } from "@/lib/currency";
+import { useT } from "@/lib/i18n";
 import type { PlanYearRow } from "@/lib/plan";
 
 type Props = {
@@ -22,6 +23,7 @@ type Props = {
 
 export function PlanChart({ rows, target, stopAge, reachedAge }: Props) {
   const { money, compact } = useFormatters();
+  const { t } = useT();
   const showTarget = isFinite(target);
   const reachedRow = reachedAge !== null ? rows.find((r) => r.age === reachedAge) : undefined;
 
@@ -55,18 +57,18 @@ export function PlanChart({ rows, target, stopAge, reachedAge }: Props) {
               const p = payload[0]?.payload as PlanYearRow;
               return (
                 <div className="rounded-md border border-border bg-card p-3 text-xs">
-                  <p className="mb-2 font-semibold">Age {label}</p>
+                  <p className="mb-2 font-semibold">{t("Age {n}", { n: String(label) })}</p>
                   <dl className="tnum space-y-1">
                     <div className="flex justify-between gap-6">
-                      <dt className="text-muted-foreground">Pot</dt>
+                      <dt className="text-muted-foreground">{t("Pot")}</dt>
                       <dd className="font-medium">{money(p.balance)}</dd>
                     </div>
                     <div className="flex justify-between gap-6">
-                      <dt className="text-muted-foreground">Put in</dt>
+                      <dt className="text-muted-foreground">{t("Put in")}</dt>
                       <dd>{money(p.contributed)}</dd>
                     </div>
                     <div className="flex justify-between gap-6">
-                      <dt className="text-muted-foreground">Growth</dt>
+                      <dt className="text-muted-foreground">{t("Growth")}</dt>
                       <dd className="text-primary">{money(p.growth)}</dd>
                     </div>
                   </dl>
@@ -108,7 +110,7 @@ export function PlanChart({ rows, target, stopAge, reachedAge }: Props) {
               stroke="var(--muted-foreground)"
               strokeDasharray="6 4"
               label={{
-                value: `Your number — ${money(target)}`,
+                value: t("Your number — {v}", { v: money(target) }),
                 position: "insideTopRight",
                 fill: "var(--muted-foreground)",
                 fontSize: 12,
@@ -120,7 +122,7 @@ export function PlanChart({ rows, target, stopAge, reachedAge }: Props) {
             stroke="var(--muted-foreground)"
             strokeDasharray="3 3"
             label={{
-              value: `Target age ${stopAge}`,
+              value: t("Target age {n}", { n: stopAge }),
               position: "insideTopLeft",
               fill: "var(--muted-foreground)",
               fontSize: 12,
@@ -135,7 +137,7 @@ export function PlanChart({ rows, target, stopAge, reachedAge }: Props) {
               stroke="var(--background)"
               strokeWidth={2}
               label={{
-                value: `${reachedRow.age} — you reach your number`,
+                value: t("{n} — you reach your number", { n: reachedRow.age }),
                 position: "top",
                 fill: "var(--accent)",
                 fontSize: 12,

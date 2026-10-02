@@ -13,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CurrencyProvider } from "../lib/currency";
+import { LanguageProvider } from "../lib/i18n";
 import { AppShell } from "../components/AppShell";
 
 
@@ -136,12 +137,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
       <CurrencyProvider>
         <AppShell>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
         </AppShell>
       </CurrencyProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }
