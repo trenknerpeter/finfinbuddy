@@ -23,6 +23,7 @@ import {
   type SavedPlan,
 } from "@/lib/plan";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/plan")({
   head: () => ({
@@ -118,6 +119,7 @@ function Questionnaire({
 }) {
   const navigate = useNavigate();
   const { symbol } = useFormatters();
+  const { t } = useT();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<PlanProfile>(
     initial ?? { age: 35, stop: 60, spend: 2500, pot: 25000, save: 500 },
@@ -142,16 +144,16 @@ function Questionnaire({
   const advance = () => {
     const n = parseFloat(text.replace(/[^0-9.,-]/g, "").replace(",", "."));
     if (!isFinite(n) || isNaN(n)) {
-      setError("Enter a number to continue.");
+      setError(t("Enter a number to continue."));
       return;
     }
     const value = Math.round(n);
     if (value < q.min || value > q.max) {
-      setError(`Between ${q.min} and ${q.max}, please.`);
+      setError(t("Between {min} and {max}, please.", { min: q.min, max: q.max }));
       return;
     }
     if (q.key === "stop" && value <= answers.age) {
-      setError("It has to be above your current age — otherwise you'd already be there.");
+      setError(t("It has to be above your current age — otherwise you'd already be there."));
       return;
     }
     const next = { ...answers, [q.key]: value };
@@ -169,7 +171,7 @@ function Questionnaire({
         <button
           type="button"
           onClick={() => step > 0 && goTo(step - 1, answers)}
-          aria-label="Back"
+          aria-label={t("Back")}
           className={cn(
             "flex size-11 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:text-foreground",
             step === 0 && "pointer-events-none opacity-0",
@@ -197,8 +199,8 @@ function Questionnaire({
           advance();
         }}
       >
-        <h1 className="text-3xl font-semibold tracking-tight">{q.title}</h1>
-        {q.helper && <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{q.helper}</p>}
+        <h1 className="text-3xl font-semibold tracking-tight">{t(q.title)}</h1>
+        {q.helper && <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{t(q.helper)}</p>}
 
         <div className="mt-10 flex items-baseline gap-3 border-b-2 border-border pb-3 focus-within:border-primary">
           {q.money && <span className="text-2xl text-muted-foreground">{symbol}</span>}
@@ -210,18 +212,18 @@ function Questionnaire({
               setText(e.target.value);
               setError(null);
             }}
-            aria-label={q.title}
+            aria-label={t(q.title)}
             className="tnum w-full bg-transparent text-4xl font-semibold tracking-tight outline-none"
           />
         </div>
-        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{q.detail}</p>
+        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{t(q.detail)}</p>
         {error && <p className="mt-3 text-sm text-muted-foreground">{error}</p>}
 
         <button
           type="submit"
           className="mt-10 inline-flex h-11 items-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
-          {step === QUESTIONS.length - 1 ? "See my plan" : "Continue"}
+          {step === QUESTIONS.length - 1 ? t("See my plan") : t("Continue")}
         </button>
       </form>
 
@@ -230,7 +232,7 @@ function Questionnaire({
         onClick={() => navigate({ to: "/invest" })}
         className="mt-16 self-center text-sm text-muted-foreground underline-offset-4 hover:underline"
       >
-        Skip for now
+        {t("Skip for now")}
       </button>
     </div>
   );
@@ -267,6 +269,7 @@ function LeverCard({
   suffixPosition?: "left" | "right";
   caption?: string;
 }) {
+  const { t } = useT();
   const atSolve = solved !== null && Math.abs(value - solved) <= step / 2;
   const markerPct =
     solved !== null && max > min ? Math.min(100, Math.max(0, ((solved - min) / (max - min)) * 100)) : null;
@@ -277,20 +280,20 @@ function LeverCard({
         <p className="text-sm font-medium">{title}</p>
         {atSolve && (
           <span className="flex items-center gap-1 text-xs font-medium text-primary">
-            <Check className="size-3.5" /> Closed
+            <Check className="size-3.5" /> {t("Closed")}
           </span>
         )}
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">Now: {now}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{t("Now: {v}", { v: now })}</p>
       <p className="tnum mt-3 text-xl font-semibold tracking-tight">
         {solved === null ? "—" : solvedLabel}
       </p>
       <p className="mt-1 text-xs text-muted-foreground">
         {solved === null
-          ? "This one can't close the gap on its own."
+          ? t("This one can't close the gap on its own.")
           : atSolve
-            ? "This alone closes the gap."
-            : "What this alone would have to be"}
+            ? t("This alone closes the gap.")
+            : t("What this alone would have to be")}
       </p>
       <div className="relative mt-4">
         <NumberSlider
@@ -321,6 +324,7 @@ function LeverCard({
 function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
   const router = useRouter();
   const { money, percent, symbol } = useFormatters();
+  const { t, count, locale } = useT();
   const scale = useCurrencyScale();
 
   const [assumptions, setAssumptions] = useState<PlanAssumptions>({
@@ -408,36 +412,43 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
         <div className="min-w-0">
           {alreadyFunded ? (
             <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-semibold leading-tight tracking-tight text-primary">
-              You could stop working now.
+              {t("You could stop working now.")}
             </h1>
           ) : unreachable ? (
             <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-semibold leading-tight tracking-tight">
-              On this path, you don't reach your number.
+              {t("On this path, you don't reach your number.")}
             </h1>
           ) : early ? (
             <>
               <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-semibold leading-tight tracking-tight text-primary">
-                You can stop working at {reachedAge} — {yearsEarly}{" "}
-                {yearsEarly === 1 ? "year" : "years"} early.
+                {t("You can stop working at {age} — {years} early.", {
+                  age: reachedAge ?? levers.stop,
+                  years: count(yearsEarly, "year"),
+                })}
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                That's ahead of your target of {levers.stop}. Keep going until {levers.stop} and
-                you'd have about {money(surplusAtStop)} more than your number.
+                {t("That's ahead of your target of {stop}. Keep going until {stop} and you'd have about {v} more than your number.", {
+                  stop: levers.stop,
+                  v: money(surplusAtStop),
+                })}
               </p>
             </>
           ) : onTrack ? (
             <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-semibold leading-tight tracking-tight text-primary">
-              You're on track to stop working at {levers.stop}.
+              {t("You're on track to stop working at {stop}.", { stop: levers.stop })}
             </h1>
           ) : (
             <>
               <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-semibold leading-tight tracking-tight">
-                At this rate, you can stop working at {reachedAge}.
+                {t("At this rate, you can stop working at {age}.", { age: reachedAge ?? levers.stop })}
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                {(reachedAge ?? 0) - levers.stop} years later than your target of {levers.stop}. At{" "}
-                {levers.stop} you'd have about {money(potAtStop)} — around {money(Math.max(0, gap))}{" "}
-                short.
+                {t("{years} later than your target of {stop}. At {stop} you'd have about {v} — around {gap} short.", {
+                  years: count((reachedAge ?? 0) - levers.stop, "year"),
+                  stop: levers.stop,
+                  v: money(potAtStop),
+                  gap: money(Math.max(0, gap)),
+                })}
               </p>
             </>
           )}
@@ -448,14 +459,14 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
             onClick={() => window.print()}
             className="rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-            Save as PDF
+            {t("Save as PDF")}
           </button>
           <button
             type="button"
             onClick={onEdit}
             className="rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-            Edit answers
+            {t("Edit answers")}
           </button>
         </div>
       </div>
@@ -463,53 +474,58 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
       <Panel>
         <div className="grid gap-6 sm:grid-cols-3">
           <div className="min-w-0">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Your target</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("Your target")}</p>
             <p className="tnum mt-1.5 whitespace-nowrap text-[clamp(1.25rem,1.85vw,2rem)] font-semibold leading-tight tracking-tight">
               {isFinite(target) ? money(target) : "—"}
             </p>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              {percent(assumptions.wd)} a year of it covers your yearly spending of{" "}
-              {money(levers.spend * 12)} without touching the pot
+              {t("{p} a year of it covers your yearly spending of {v} without touching the pot", {
+                p: percent(assumptions.wd),
+                v: money(levers.spend * 12),
+              })}
             </p>
           </div>
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Projected at {levers.stop}
+              {t("Projected at {stop}", { stop: levers.stop })}
             </p>
             <p className="tnum mt-1.5 whitespace-nowrap text-[clamp(1.25rem,1.85vw,2rem)] font-semibold leading-tight tracking-tight">
               {money(potAtStop)}
             </p>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              {money(levers.save)} a month at {percent(levers.ret)}, in today's money
+              {t("{v} a month at {p}, in today's money", {
+                v: money(levers.save),
+                p: percent(levers.ret),
+              })}
             </p>
           </div>
           <div className="min-w-0">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">The gap</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("The gap")}</p>
             <p className="tnum mt-1.5 whitespace-nowrap text-[clamp(1.25rem,1.85vw,2rem)] font-semibold leading-tight tracking-tight">
-              {gap <= 0 ? "Covered" : isFinite(gap) ? money(gap) : "—"}
+              {gap <= 0 ? t("Covered") : isFinite(gap) ? money(gap) : "—"}
             </p>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              {gap <= 0 ? "You're ahead of your number" : "What the projection is missing"}
+              {gap <= 0 ? t("You're ahead of your number") : t("What the projection is missing")}
             </p>
           </div>
         </div>
       </Panel>
 
-      <Panel title="Getting there">
+      <Panel title={t("Getting there")}>
         <PlanChart rows={rows} target={target} stopAge={levers.stop} reachedAge={reachedAge} />
         <div className="mt-4 flex flex-wrap items-center gap-5 text-xs text-muted-foreground">
           <span className="flex items-center gap-2">
-            <span className="size-2.5 rounded-sm bg-neutral-fill" /> Money you put in
+            <span className="size-2.5 rounded-sm bg-neutral-fill" /> {t("Money you put in")}
           </span>
           <span className="flex items-center gap-2">
-            <span className="size-2.5 rounded-sm bg-primary/30 ring-1 ring-primary" /> Growth
+            <span className="size-2.5 rounded-sm bg-primary/30 ring-1 ring-primary" /> {t("Growth")}
           </span>
         </div>
       </Panel>
 
       <div className="print:hidden">
         <div className="mb-4 flex items-center justify-between gap-4">
-          <h2 className="text-sm font-semibold tracking-tight">Four ways to close the gap</h2>
+          <h2 className="text-sm font-semibold tracking-tight">{t("Four ways to close the gap")}</h2>
           {leversDirty && (
             <button
               type="button"
@@ -518,13 +534,13 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
               }
               className="text-sm text-muted-foreground underline-offset-4 hover:underline"
             >
-              Reset levers
+              {t("Reset levers")}
             </button>
           )}
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <LeverCard
-            title="Save more each month"
+            title={t("Save more each month")}
             now={money(plan.save)}
             solved={solveSave}
             solvedLabel={solveSave !== null ? money(solveSave) : "—"}
@@ -537,7 +553,7 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
             suffixPosition="left"
           />
           <LeverCard
-            title="Work a bit longer"
+            title={t("Work a bit longer")}
             now={`${plan.stop}`}
             solved={solveStop !== null && solveStop <= 85 ? solveStop : null}
             solvedLabel={solveStop !== null && solveStop <= 85 ? `${solveStop}` : "—"}
@@ -546,13 +562,13 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
             min={plan.age + 1}
             max={85}
             step={1}
-            suffix="years old"
+            suffix={t("years old")}
           />
           <LeverCard
-            title="Live on less"
-            now={`${money(plan.spend)}/mo`}
+            title={t("Live on less")}
+            now={t("{v}/mo", { v: money(plan.spend) })}
             solved={solveSpend}
-            solvedLabel={solveSpend !== null ? `${money(solveSpend)}/mo` : "—"}
+            solvedLabel={solveSpend !== null ? t("{v}/mo", { v: money(solveSpend) }) : "—"}
             value={levers.spend}
             onChange={(v) => setLevers((l) => ({ ...l, spend: v }))}
             min={0}
@@ -562,7 +578,7 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
             suffixPosition="left"
           />
           <LeverCard
-            title="Higher returns"
+            title={t("Higher returns")}
             now={percent(assumptions.ret)}
             solved={solveRet}
             solvedLabel={solveRet !== null ? `≈${percent(solveRet)}` : "—"}
@@ -572,7 +588,7 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
             max={15}
             step={0.1}
             suffix="%"
-            caption="The one lever you don't control."
+            caption={t("The one lever you don't control.")}
           />
         </div>
       </div>
@@ -581,13 +597,13 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
         <Accordion type="single" collapsible>
           <AccordionItem value="assumptions" className="border-none">
             <AccordionTrigger className="text-sm font-semibold hover:no-underline">
-              Assumptions
+              {t("Assumptions")}
             </AccordionTrigger>
             <AccordionContent>
-              <p className="mb-6 text-sm text-muted-foreground">All figures are in today's money.</p>
+              <p className="mb-6 text-sm text-muted-foreground">{t("All figures are in today's money.")}</p>
               <div className="grid gap-6 sm:grid-cols-3">
                 <NumberSlider
-                  label="Expected annual return"
+                  label={t("Expected annual return")}
                   value={assumptions.ret}
                   onChange={(v) => {
                     setAssumptions((a) => ({ ...a, ret: v }));
@@ -599,7 +615,7 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
                   suffix="%"
                 />
                 <NumberSlider
-                  label="Safe withdrawal rate"
+                  label={t("Safe withdrawal rate")}
                   value={assumptions.wd}
                   onChange={(v) => setAssumptions((a) => ({ ...a, wd: v }))}
                   min={2}
@@ -608,7 +624,7 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
                   suffix="%"
                 />
                 <NumberSlider
-                  label="Inflation"
+                  label={t("Inflation")}
                   value={assumptions.infl}
                   onChange={(v) => setAssumptions((a) => ({ ...a, infl: v }))}
                   min={0}
@@ -618,9 +634,7 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
                 />
               </div>
               <p className="mt-6 text-xs leading-relaxed text-muted-foreground">
-                Take out 4% of the pot in your first year and adjust for inflation after that, and
-                the money has historically lasted 30 years or more. It's a rule of thumb, not a
-                guarantee.
+                {t("Take out 4% of the pot in your first year and adjust for inflation after that, and the money has historically lasted 30 years or more. It's a rule of thumb, not a guarantee.")}
               </p>
             </AccordionContent>
           </AccordionItem>
@@ -630,58 +644,57 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
       {/* Print-only summary: the inputs and assumptions behind the numbers above. */}
       <div className="plan-print-summary hidden print:block">
         <div className="plan-print-summary-card rounded-lg border border-border p-6">
-          <p className="text-sm font-semibold tracking-tight">Your inputs</p>
+          <p className="text-sm font-semibold tracking-tight">{t("Your inputs")}</p>
           <dl className="tnum mt-3 grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
             <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Age</dt>
+              <dt className="text-muted-foreground">{t("Age")}</dt>
               <dd>{plan.age}</dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Target age</dt>
+              <dt className="text-muted-foreground">{t("Target age")}</dt>
               <dd>{levers.stop}</dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Monthly spending</dt>
+              <dt className="text-muted-foreground">{t("Monthly spending")}</dt>
               <dd>{money(levers.spend)}</dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Saved today</dt>
+              <dt className="text-muted-foreground">{t("Saved today")}</dt>
               <dd>{money(plan.pot)}</dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Monthly saving</dt>
+              <dt className="text-muted-foreground">{t("Monthly saving")}</dt>
               <dd>{money(levers.save)}</dd>
             </div>
           </dl>
-          <p className="mt-5 text-sm font-semibold tracking-tight">Assumptions</p>
+          <p className="mt-5 text-sm font-semibold tracking-tight">{t("Assumptions")}</p>
           <dl className="tnum mt-3 grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
             <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Annual return</dt>
+              <dt className="text-muted-foreground">{t("Annual return")}</dt>
               <dd>{percent(levers.ret)}</dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Withdrawal rate</dt>
+              <dt className="text-muted-foreground">{t("Withdrawal rate")}</dt>
               <dd>{percent(assumptions.wd)}</dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Inflation</dt>
+              <dt className="text-muted-foreground">{t("Inflation")}</dt>
               <dd>{percent(assumptions.infl)}</dd>
             </div>
           </dl>
           <p className="mt-5 text-xs text-muted-foreground">
-            All figures in today's money. Made with FinBuddy ·{" "}
-            {new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
+            {t("All figures in today's money. Made with FinBuddy · {date}", {
+              date: new Date().toLocaleDateString(locale, { year: "numeric", month: "long", day: "numeric" }),
+            })}
           </p>
         </div>
         <p className="plan-print-disclaimer mt-8 text-xs leading-relaxed text-muted-foreground">
-          FinBuddy does arithmetic, not advice. These are projections based on assumptions you can
-          change — not a prediction, and not a recommendation to buy or sell anything.
+          {t("FinBuddy does arithmetic, not advice. These are projections based on assumptions you can change — not a prediction, and not a recommendation to buy or sell anything.")}
         </p>
       </div>
 
       <p className="pb-4 text-xs leading-relaxed text-muted-foreground print:hidden">
-        FinBuddy does arithmetic, not advice. These are projections based on assumptions you can
-        change — not a prediction, and not a recommendation to buy or sell anything.
+        {t("FinBuddy does arithmetic, not advice. These are projections based on assumptions you can change — not a prediction, and not a recommendation to buy or sell anything.")}
       </p>
     </div>
   );

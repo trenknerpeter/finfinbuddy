@@ -244,7 +244,7 @@ function Mortgage() {
                   min={1}
                   max={Math.max(1, Math.ceil(solved.months / 12))}
                   step={1}
-                  suffix=""
+                  suffix={t("year")}
                 />
               </div>
             )}
