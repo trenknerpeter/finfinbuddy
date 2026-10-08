@@ -292,10 +292,14 @@ function Dashboard() {
             {/* Where your money goes */}
             <Panel title={t("Where your money goes")}>
               <div className="mb-5">
-                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <label
+                  htmlFor="dashboard-income"
+                  className="text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                >
                   {t("Monthly net income")}
                 </label>
                 <input
+                  id="dashboard-income"
                   type="number"
                   min={0}
                   value={store.income || ""}
