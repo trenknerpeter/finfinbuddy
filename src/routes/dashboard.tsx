@@ -260,7 +260,7 @@ function Dashboard() {
                 label={t("Net worth")}
                 value={money(m.netWorth)}
                 caption={t("Assets minus debts")}
-                accent
+                accent={m.netWorth >= 0}
               />
               <Kpi
                 label={t("Savings rate")}
@@ -371,7 +371,7 @@ function Dashboard() {
           </div>
 
           {/* Missing-data hints */}
-          {(!saved.invest || !saved.mortgage || !saved.plan) && (
+          {!useDemo && (!saved.invest || !saved.mortgage || !saved.plan) && (
             <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium">
               {!saved.invest && (
                 <Link to="/invest" className="text-primary hover:underline">
