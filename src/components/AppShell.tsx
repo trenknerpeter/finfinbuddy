@@ -43,6 +43,7 @@ const TABS = [
   { label: "Invest", to: "/invest" },
   { label: "Mortgage", to: "/mortgage" },
   { label: "Plan", to: "/plan" },
+  { label: "Dashboard", to: "/dashboard" },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -81,15 +82,6 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </Link>
               );
             })}
-            <span
-              aria-disabled="true"
-              className="-mb-px flex h-11 cursor-not-allowed items-center gap-2 border-b-2 border-transparent text-sm text-foreground opacity-40"
-            >
-              {t("Dashboard")}
-              <span className="rounded-full border border-border px-1.5 py-0.5 text-[10px] uppercase tracking-wide">
-                {t("Soon")}
-              </span>
-            </span>
           </nav>
         </div>
       </header>
