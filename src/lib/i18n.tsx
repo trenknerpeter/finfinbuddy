@@ -202,9 +202,41 @@ const CS: Record<string, string> = {
   "Your number — {v}": "Cílová částka — {v}",
   "{n} — you reach your number": "{n} — dosáhnete cílové částky",
   // Dashboard
-  "Coming soon": "Již brzy",
-  "Upload your monthly bank statement and see where the money actually goes: income and spending by category, month over month.":
-    "Nahrajte měsíční výpis z účtu a uvidíte, kam peníze skutečně odcházejí: příjmy a výdaje podle kategorií, měsíc po měsíci.",
+  "Based on what you've saved in the other tabs. Everything stays in your browser.":
+    "Vychází z toho, co máte uloženo v ostatních záložkách. Vše zůstává ve vašem prohlížeči.",
+  "Load demo data": "Načíst ukázková data",
+  "Showing sample numbers. Turn off to see your own.":
+    "Zobrazují se ukázková čísla. Vypnutím uvidíte svá vlastní.",
+  "Nothing here yet": "Zatím tu nic není",
+  "Set up a tab first — the dashboard reads what you save there. Or load demo data to see how it works.":
+    "Nejdřív nastavte některou záložku — přehled čte, co si tam uložíte. Nebo načtěte ukázková data.",
+  "Set up your investments →": "Nastavit investice →",
+  "Set up your mortgage →": "Nastavit hypotéku →",
+  "Answer the five questions →": "Zodpovědět pět otázek →",
+  "Where you stand": "Kde stojíte",
+  "Net worth": "Čisté jmění",
+  "Assets minus debts": "Majetek minus dluhy",
+  "Savings rate": "Míra spoření",
+  "of your monthly income": "z měsíčního příjmu",
+  "Add your income below": "Níže doplňte příjem",
+  "Debt-to-assets": "Dluh k majetku",
+  "Mortgage balance vs. what you own": "Zbývající hypotéka vůči majetku",
+  "Retirement readiness": "Připravenost na rentu",
+  "of your number": "z cílové částky",
+  "Stop work at {age}": "Práce končí v {age}",
+  "Monthly net income": "Měsíční čistý příjem",
+  "What lands in your account each month. Used only for the savings rate — stored in this browser.":
+    "Co vám měsíčně přijde na účet. Slouží jen pro míru spoření — uloženo v tomto prohlížeči.",
+  "Where your money goes": "Kam peníze odcházejí",
+  "Mortgage payment": "Splátka hypotéky",
+  Investing: "Investování",
+  "Free cash": "Volné peníze",
+  "Where you're headed": "Kam míříte",
+  "Net worth over time — savings growth minus the mortgage balance.":
+    "Čisté jmění v čase — růst úspor minus zbývající hypotéka.",
+  "In {years}: {v}": "Za {years}: {v}",
+  Assets: "Majetek",
+  Debt: "Dluh",
 };
 
 type Vars = Record<string, string | number>;
