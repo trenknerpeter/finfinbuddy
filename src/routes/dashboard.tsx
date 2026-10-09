@@ -11,10 +11,9 @@ import {
   YAxis,
 } from "recharts";
 import { Panel } from "@/components/Panel";
-import { Switch } from "@/components/ui/switch";
+import { SnapshotBar } from "@/components/dashboard/SnapshotBar";
 import { useFormatters } from "@/lib/currency";
 import {
-  DEMO,
   deriveMetrics,
   loadDashboard,
   loadInvest,
@@ -170,7 +169,7 @@ function NetWorthChart({ rows }: { rows: NetWorthRow[] }) {
 function Dashboard() {
   const { t, count } = useT();
   const { money, percent } = useFormatters();
-  const [store, setStore] = useState<DashboardStore>({ income: 0, demo: false });
+  const [store, setStore] = useState<DashboardStore>({ income: 0 });
   const [hydrated, setHydrated] = useState(false);
   const [saved, setSaved] = useState<{
     invest: ReturnType<typeof loadInvest>;
@@ -193,12 +192,8 @@ function Dashboard() {
   };
 
   const hasAnyData = Boolean(saved.invest || saved.mortgage || saved.plan);
-  const useDemo = store.demo;
-
-  const invest = saved.invest ?? (useDemo ? DEMO.invest : null);
-  const mortgage = saved.mortgage ?? (useDemo ? DEMO.mortgage : null);
-  const plan = saved.plan ?? (useDemo ? DEMO.plan : null);
-  const income = store.income > 0 ? store.income : useDemo ? DEMO.income : 0;
+  const { invest, mortgage, plan } = saved;
+  const income = store.income;
 
   const m = useMemo(
     () => deriveMetrics({ invest, mortgage, plan, income }),
@@ -207,7 +202,7 @@ function Dashboard() {
 
   if (!hydrated) return null;
 
-  const showEmpty = !hasAnyData && !useDemo;
+  const showEmpty = !hasAnyData;
 
   return (
     <div className="space-y-6">
@@ -218,25 +213,15 @@ function Dashboard() {
             {t("Based on what you've saved in the other tabs. Everything stays in your browser.")}
           </p>
         </div>
-        <label className="flex items-center gap-2 text-sm">
-          <Switch checked={useDemo} onCheckedChange={(v) => update({ demo: v })} />
-          {t("Load demo data")}
-        </label>
       </div>
 
-      {useDemo && (
-        <p className="rounded-md border border-border bg-muted/40 px-4 py-2 text-xs text-muted-foreground">
-          {t("Showing sample numbers. Turn off to see your own.")}
-        </p>
-      )}
+      <SnapshotBar />
 
       {showEmpty ? (
         <Panel className="py-14 text-center">
           <p className="text-base font-semibold">{t("Nothing here yet")}</p>
           <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-            {t(
-              "Set up a tab first — the dashboard reads what you save there. Or load demo data to see how it works.",
-            )}
+            {t("Fill in your numbers in Invest, Mortgage and Plan — the dashboard brings them together here.")}
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3 text-sm font-medium">
             <Link to="/invest" className="text-primary hover:underline">
@@ -303,7 +288,7 @@ function Dashboard() {
                   type="number"
                   min={0}
                   value={store.income || ""}
-                  placeholder={money(DEMO.income)}
+                  placeholder={money(3000)}
                   onChange={(e) => update({ income: Math.max(0, parseFloat(e.target.value) || 0) })}
                   className="tnum mt-1.5 h-10 w-full rounded-md border border-border bg-background px-3 text-sm outline-none focus:border-primary"
                 />
@@ -371,7 +356,7 @@ function Dashboard() {
           </div>
 
           {/* Missing-data hints */}
-          {!useDemo && (!saved.invest || !saved.mortgage || !saved.plan) && (
+          {(!saved.invest || !saved.mortgage || !saved.plan) && (
             <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium">
               {!saved.invest && (
                 <Link to="/invest" className="text-primary hover:underline">

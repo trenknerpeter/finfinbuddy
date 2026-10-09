@@ -29,7 +29,6 @@ export type MortgageScenario = {
 
 export type DashboardStore = {
   income: number;
-  demo: boolean;
 };
 
 export const DASH_KEY = "finbuddy.dashboard.v1";
@@ -72,7 +71,7 @@ export function loadMortgage(): MortgageScenario | null {
 
 export function loadDashboard(): DashboardStore {
   const p = readJson<DashboardStore>(DASH_KEY);
-  return { income: num(p?.income), demo: Boolean(p?.demo) };
+  return { income: num(p?.income) };
 }
 
 export function saveDashboard(store: DashboardStore) {
@@ -82,18 +81,6 @@ export function saveDashboard(store: DashboardStore) {
     /* ignore */
   }
 }
-
-export const DEMO: {
-  invest: InvestScenario;
-  mortgage: MortgageScenario;
-  plan: SavedPlan;
-  income: number;
-} = {
-  invest: { initial: 25000, monthly: 600, rate: 7, years: 20, inflation: 2, real: false, withdrawRate: 4 },
-  mortgage: { principal: 240000, rate: 3.8, years: 25, payment: 0, solveTerm: false },
-  plan: { age: 34, stop: 60, spend: 2600, pot: 45000, save: 700, ...DEFAULT_ASSUMPTIONS },
-  income: 3400,
-};
 
 export type NetWorthRow = { year: number; assets: number; debt: number; netWorth: number };
 
