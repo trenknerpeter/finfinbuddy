@@ -204,12 +204,37 @@ const CS: Record<string, string> = {
   // Dashboard
   "Based on what you've saved in the other tabs. Everything stays in your browser.":
     "Vychází z toho, co máte uloženo v ostatních záložkách. Vše zůstává ve vašem prohlížeči.",
-  "Load demo data": "Načíst ukázková data",
-  "Showing sample numbers. Turn off to see your own.":
-    "Zobrazují se ukázková čísla. Vypnutím uvidíte svá vlastní.",
   "Nothing here yet": "Zatím tu nic není",
-  "Set up a tab first — the dashboard reads what you save there. Or load demo data to see how it works.":
-    "Nejdřív nastavte některou záložku — přehled čte, co si tam uložíte. Nebo načtěte ukázková data.",
+  "Fill in your numbers in Invest, Mortgage and Plan — the dashboard brings them together here.":
+    "Vyplňte svá čísla v záložkách Investice, Hypotéka a Plán — přehled je tu spojí dohromady.",
+  "Financial snapshot": "Finanční snímek",
+  "Save your whole situation — every tab at once — and come back to it, compare, or share it.":
+    "Uložte celou svou situaci — všechny záložky najednou — a vraťte se k ní, porovnávejte nebo ji sdílejte.",
+  "Unsaved current situation": "Aktuální neuložená situace",
+  "Switch snapshot": "Přepnout snímek",
+  "Save as new": "Uložit jako nový",
+  "Update": "Aktualizovat",
+  "Rename": "Přejmenovat",
+  "Delete": "Smazat",
+  "Copy share link": "Kopírovat odkaz",
+  "Link copied": "Odkaz zkopírován",
+  "Download backup": "Stáhnout zálohu",
+  "Import backup": "Nahrát zálohu",
+  "Save": "Uložit",
+  "Cancel": "Zrušit",
+  "Snapshot name": "Název snímku",
+  "e.g. Baseline Oct 2026": "např. Výchozí stav říjen 2026",
+  "Saved {date}": "Uloženo {date}",
+  "Delete “{name}”?": "Smazat „{name}“?",
+  "Someone shared a financial snapshot with you: {name}": "Někdo s vámi sdílel finanční snímek: {name}",
+  "Loading it replaces the numbers in every tab. Save your own first if you want to keep them.":
+    "Načtení nahradí čísla ve všech záložkách. Pokud si chcete ty své ponechat, nejdřív je uložte.",
+  "Load and save": "Načíst a uložit",
+  "Dismiss": "Zavřít",
+  "That file isn't a FinBuddy backup.": "Tento soubor není záloha FinBuddy.",
+  "Switching replaces the numbers in every tab with this snapshot. Unsaved changes will be lost. Continue?":
+    "Přepnutí nahradí čísla ve všech záložkách tímto snímkem. Neuložené změny se ztratí. Pokračovat?",
+  "Edited since saved": "Od uložení upraveno",
   "Set up your investments →": "Nastavit investice →",
   "Set up your mortgage →": "Nastavit hypotéku →",
   "Answer the five questions →": "Zodpovědět pět otázek →",
