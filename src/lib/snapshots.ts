@@ -91,7 +91,7 @@ export function deleteSnapshot(id: string) {
 function isSnapshot(v: unknown): v is Snapshot {
   if (!v || typeof v !== "object") return false;
   const o = v as Record<string, unknown>;
-  return typeof o.name === "string" && typeof o.data === "object" && o.data !== null;
+  return typeof o["name"] === "string" && typeof o["data"] === "object" && o["data"] !== null;
 }
 
 /** Parses an exported file or a decoded link payload. */
