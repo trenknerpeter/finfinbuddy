@@ -17,6 +17,10 @@ export type InvestScenario = {
   inflation: number;
   real: boolean;
   withdrawRate: number;
+  savings: boolean;
+  sInitial: number;
+  sMonthly: number;
+  sRate: number;
 };
 
 export type MortgageScenario = {
@@ -54,6 +58,10 @@ export function loadInvest(): InvestScenario | null {
     inflation: num(p.inflation, 2),
     real: Boolean(p.real),
     withdrawRate: num(p.withdrawRate, 4),
+    savings: Boolean(p.savings),
+    sInitial: num(p.sInitial),
+    sMonthly: num(p.sMonthly),
+    sRate: num(p.sRate, 3),
   };
 }
 
@@ -86,6 +94,9 @@ export type NetWorthRow = { year: number; assets: number; debt: number; netWorth
 
 export type DashboardMetrics = {
   assets: number;
+  invested: number;
+  cash: number;
+  assetsSource: "plan" | "invest" | "none";
   mortgageBalance: number;
   netWorth: number;
   savingsRate: number | null;
@@ -108,14 +119,21 @@ export function deriveMetrics(input: {
 }): DashboardMetrics {
   const { invest, mortgage, plan, income } = input;
 
-  const pot = plan ? num(plan.pot) : 0;
-  const investInitial = invest ? num(invest.initial) : 0;
-  const assets = pot + investInitial;
+  // Single source of truth for what you own today: Plan if answered, otherwise the Invest tab.
+  const investSavings = invest?.savings ? invest.sInitial : 0;
+  const invested = plan ? num(plan.invested) : invest ? num(invest.initial) : 0;
+  const cash = plan ? num(plan.cash) : investSavings;
+  const assets = invested + cash;
+  const pot = assets;
 
   const mortgageBalance = mortgage ? num(mortgage.principal) : 0;
   const netWorth = assets - mortgageBalance;
 
-  const monthlySaving = plan ? num(plan.save) : invest ? num(invest.monthly) : 0;
+  const monthlySaving = plan
+    ? num(plan.save)
+    : invest
+      ? num(invest.monthly) + (invest.savings ? num(invest.sMonthly) : 0)
+      : 0;
   const savingsRate = income > 0 && monthlySaving > 0 ? monthlySaving / income : null;
   const debtToAssets = assets > 0 && mortgageBalance > 0 ? mortgageBalance / assets : null;
 
@@ -155,6 +173,9 @@ export function deriveMetrics(input: {
 
   return {
     assets,
+    invested,
+    cash,
+    assetsSource: plan ? "plan" : invest ? "invest" : "none",
     mortgageBalance,
     netWorth,
     savingsRate,

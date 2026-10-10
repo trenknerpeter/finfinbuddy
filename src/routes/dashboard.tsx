@@ -167,7 +167,7 @@ function NetWorthChart({ rows }: { rows: NetWorthRow[] }) {
 }
 
 function Dashboard() {
-  const { t, count } = useT();
+  const { t, count, locale } = useT();
   const { money, percent } = useFormatters();
   const [store, setStore] = useState<DashboardStore>({ income: 0 });
   const [hydrated, setHydrated] = useState(false);
@@ -213,9 +213,20 @@ function Dashboard() {
             {t("Based on what you've saved in the other tabs. Everything stays in your browser.")}
           </p>
         </div>
+        {hasAnyData && (
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground print:hidden"
+          >
+            {t("Save as PDF")}
+          </button>
+        )}
       </div>
 
-      <SnapshotBar />
+      <div className="print:hidden">
+        <SnapshotBar />
+      </div>
 
       {showEmpty ? (
         <Panel className="py-14 text-center">
@@ -231,7 +242,7 @@ function Dashboard() {
               {t("Set up your mortgage →")}
             </Link>
             <Link to="/plan" className="text-primary hover:underline">
-              {t("Answer the five questions →")}
+              {t("Answer the plan questions →")}
             </Link>
           </div>
         </Panel>
@@ -244,7 +255,11 @@ function Dashboard() {
               <Kpi
                 label={t("Net worth")}
                 value={money(m.netWorth)}
-                caption={t("Assets minus debts")}
+                caption={
+                  m.cash > 0
+                    ? t("Invested {a} · Savings {b}", { a: money(m.invested), b: money(m.cash) })
+                    : t("Assets minus debts")
+                }
                 accent={m.netWorth >= 0}
               />
               <Kpi
@@ -267,7 +282,7 @@ function Dashboard() {
                     ? t("Stop work at {age}", { age: Math.round(m.projectedStopAge) })
                     : m.readiness !== null
                       ? t("of your number")
-                      : t("Answer the five questions →")
+                      : t("Answer the plan questions →")
                 }
               />
             </div>
@@ -355,9 +370,93 @@ function Dashboard() {
             </Panel>
           </div>
 
+          {/* Print-only page 2: the details behind the overview. */}
+          <div className="plan-print-summary hidden print:block">
+            <div className="plan-print-summary-card space-y-5 rounded-lg border border-border p-6 text-sm">
+              <p className="font-semibold tracking-tight">{t("The details")}</p>
+              {[
+                {
+                  title: t("Investments"),
+                  rows: invest
+                    ? [
+                        [t("Initial amount"), money(invest.initial)],
+                        [t("Monthly contribution"), money(invest.monthly)],
+                        [t("Expected annual return"), percent(invest.rate)],
+                        [t("Investment period"), count(Math.round(invest.years), "year")],
+                      ]
+                    : null,
+                },
+                {
+                  title: t("Savings account"),
+                  rows:
+                    invest && invest.savings
+                      ? [
+                          [t("Initial amount"), money(invest.sInitial)],
+                          [t("Monthly deposit"), money(invest.sMonthly)],
+                          [t("Interest rate"), percent(invest.sRate)],
+                        ]
+                      : null,
+                },
+                {
+                  title: t("Mortgage"),
+                  rows: mortgage
+                    ? [
+                        [t("Loan amount"), money(mortgage.principal)],
+                        [t("Interest rate"), percent(mortgage.rate)],
+                        [t("Mortgage payment"), money(m.mortgagePayment)],
+                        [t("Term"), count(Math.round(mortgage.years), "year")],
+                      ]
+                    : null,
+                },
+                {
+                  title: t("Plan"),
+                  rows: plan
+                    ? [
+                        [t("Age"), String(plan.age)],
+                        [t("Target age"), String(plan.stop)],
+                        [t("Monthly spending"), money(plan.spend)],
+                        [t("Invested today"), money(plan.invested)],
+                        [t("In savings today"), money(plan.cash)],
+                        [t("Monthly saving"), money(plan.save)],
+                        [t("Annual return"), percent(plan.ret)],
+                        [t("Withdrawal rate"), percent(plan.wd)],
+                        [t("Inflation"), percent(plan.infl)],
+                      ]
+                    : null,
+                },
+                {
+                  title: t("Monthly net income"),
+                  rows: income > 0 ? [[t("Monthly net income"), money(income)]] : null,
+                },
+              ]
+                .filter((sec) => sec.rows)
+                .map((sec) => (
+                  <div key={sec.title}>
+                    <p className="font-semibold">{sec.title}</p>
+                    <dl className="tnum mt-2 grid grid-cols-2 gap-x-8 gap-y-1.5">
+                      {sec.rows!.map(([k, v]) => (
+                        <div key={k} className="flex justify-between gap-4">
+                          <dt className="text-muted-foreground">{k}</dt>
+                          <dd>{v}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                ))}
+              <p className="text-xs text-muted-foreground">
+                {t("Made with FinBuddy · {date}", {
+                  date: new Date().toLocaleDateString(locale, { year: "numeric", month: "long", day: "numeric" }),
+                })}
+              </p>
+            </div>
+            <p className="plan-print-disclaimer mt-8 text-xs leading-relaxed text-muted-foreground">
+              {t("FinBuddy does arithmetic, not advice. These are projections based on assumptions you can change — not a prediction, and not a recommendation to buy or sell anything.")}
+            </p>
+          </div>
+
           {/* Missing-data hints */}
           {(!saved.invest || !saved.mortgage || !saved.plan) && (
-            <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium">
+            <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium print:hidden">
               {!saved.invest && (
                 <Link to="/invest" className="text-primary hover:underline">
                   {t("Set up your investments →")}
@@ -370,7 +469,7 @@ function Dashboard() {
               )}
               {!saved.plan && (
                 <Link to="/plan" className="text-primary hover:underline">
-                  {t("Answer the five questions →")}
+                  {t("Answer the plan questions →")}
                 </Link>
               )}
             </div>

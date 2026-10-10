@@ -48,7 +48,8 @@ export const Route = createFileRoute("/plan")({
 
 /* ------------------------------ Questionnaire ----------------------------- */
 
-type QuestionKey = keyof PlanProfile;
+type Answers = Omit<PlanProfile, "pot"> & { invested: number; cash: number };
+type QuestionKey = keyof Answers;
 
 const QUESTIONS: {
   key: QuestionKey;
@@ -89,11 +90,21 @@ const QUESTIONS: {
     money: true,
   },
   {
-    key: "pot",
-    title: "How much do you have saved or invested today?",
-    helper: "Everything you'd count towards this: investments, savings, pension pots.",
-    detail: "Use money intended for your future. Avoid counting your home unless you plan to sell it.",
-    def: 25000,
+    key: "invested",
+    title: "How much do you have invested today?",
+    helper: "Funds, shares, ETFs, pension pots — money that's in the market.",
+    detail: "Use today's value. Avoid counting your home unless you plan to sell it.",
+    def: 20000,
+    min: 0,
+    max: 100000000,
+    money: true,
+  },
+  {
+    key: "cash",
+    title: "How much do you have in savings accounts today?",
+    helper: "Cash in savings or term deposits that counts towards your future.",
+    detail: "Leave out your everyday current account. Together with your investments this is your starting pot.",
+    def: 5000,
     min: 0,
     max: 100000000,
     money: true,
@@ -114,15 +125,17 @@ function Questionnaire({
   initial,
   onDone,
 }: {
-  initial: PlanProfile | null;
-  onDone: (p: PlanProfile) => void;
+  initial: SavedPlan | null;
+  onDone: (p: Answers) => void;
 }) {
   const navigate = useNavigate();
   const { symbol } = useFormatters();
   const { t } = useT();
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<PlanProfile>(
-    initial ?? { age: 35, stop: 60, spend: 2500, pot: 25000, save: 500 },
+  const [answers, setAnswers] = useState<Answers>(
+    initial
+      ? { age: initial.age, stop: initial.stop, spend: initial.spend, invested: initial.invested, cash: initial.cash, save: initial.save }
+      : { age: 35, stop: 60, spend: 2500, invested: 20000, cash: 5000, save: 500 },
   );
   const [text, setText] = useState(String(initial?.age ?? QUESTIONS[0]!.def));
   const [error, setError] = useState<string | null>(null);
@@ -135,7 +148,7 @@ function Questionnaire({
     inputRef.current?.select();
   }, [step]);
 
-  const goTo = (next: number, currentAnswers: PlanProfile) => {
+  const goTo = (next: number, currentAnswers: Answers) => {
     setStep(next);
     setText(String(currentAnswers[QUESTIONS[next]!.key]));
     setError(null);
@@ -347,7 +360,8 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
       age: String(plan.age),
       stop: String(plan.stop),
       spend: String(plan.spend),
-      pot: String(plan.pot),
+      invested: String(plan.invested),
+      cash: String(plan.cash),
       save: String(plan.save),
       ret: String(assumptions.ret),
       wd: String(assumptions.wd),
@@ -357,9 +371,9 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
     if (`${window.location.pathname}${window.location.search}` !== href) {
       void router.navigate({ href, replace: true, resetScroll: false });
     }
-    savePlan({ ...profile, ...assumptions });
+    savePlan({ ...plan, ...profile, ...assumptions });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [plan.age, plan.stop, plan.spend, plan.pot, plan.save, assumptions]);
+  }, [plan.age, plan.stop, plan.spend, plan.invested, plan.cash, plan.save, assumptions]);
 
   // Effective (lever-adjusted) scenario drives the hero and the chart.
   const effProfile: PlanProfile = {
@@ -659,8 +673,12 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
               <dd>{money(levers.spend)}</dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">{t("Saved today")}</dt>
-              <dd>{money(plan.pot)}</dd>
+              <dt className="text-muted-foreground">{t("Invested today")}</dt>
+              <dd>{money(plan.invested)}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">{t("In savings today")}</dt>
+              <dd>{money(plan.cash)}</dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-muted-foreground">{t("Monthly saving")}</dt>
@@ -714,11 +732,15 @@ function PlanPage() {
         const v = parseFloat(params.get(k) ?? "");
         return isFinite(v) ? v : d;
       };
+      const invested = params.has("invested") ? n("invested", 0) : n("pot", 25000);
+      const cash = n("cash", 0);
       setPlan({
         age: n("age", 35),
         stop: n("stop", 60),
         spend: n("spend", 2500),
-        pot: n("pot", 25000),
+        pot: invested + cash,
+        invested,
+        cash,
         save: n("save", 500),
         ret: n("ret", DEFAULT_ASSUMPTIONS.ret),
         wd: n("wd", DEFAULT_ASSUMPTIONS.wd),
@@ -740,7 +762,7 @@ function PlanPage() {
           const assumptions: PlanAssumptions = plan
             ? { ret: plan.ret, wd: plan.wd, infl: plan.infl }
             : DEFAULT_ASSUMPTIONS;
-          setPlan({ ...p, ...assumptions });
+          setPlan({ ...p, pot: p.invested + p.cash, ...assumptions });
           setEditing(false);
         }}
       />

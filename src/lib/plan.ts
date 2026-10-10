@@ -14,7 +14,8 @@ export type PlanAssumptions = {
   infl: number;
 };
 
-export type SavedPlan = PlanProfile & PlanAssumptions;
+/** `pot` is always invested + cash; the split is kept so the Dashboard can show it. */
+export type SavedPlan = PlanProfile & PlanAssumptions & { invested: number; cash: number };
 
 export const PLAN_KEY = "finbuddy.profile.v1";
 
@@ -26,11 +27,16 @@ export function loadPlan(): SavedPlan | null {
     if (!raw) return null;
     const p = JSON.parse(raw) as Partial<SavedPlan>;
     if (typeof p.age !== "number" || typeof p.stop !== "number") return null;
+    const pot = num(p.pot, 25000);
+    const invested = typeof p.invested === "number" ? num(p.invested) : pot;
+    const cash = typeof p.cash === "number" ? num(p.cash) : 0;
     return {
       age: num(p.age, 35),
       stop: num(p.stop, 60),
       spend: num(p.spend, 2500),
-      pot: num(p.pot, 25000),
+      pot: invested + cash,
+      invested,
+      cash,
       save: num(p.save, 500),
       ret: num(p.ret, 7),
       wd: num(p.wd, 4),

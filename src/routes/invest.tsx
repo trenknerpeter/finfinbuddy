@@ -40,6 +40,10 @@ const DEFAULTS = {
   inflation: 2,
   real: false,
   withdrawRate: 4,
+  savings: false,
+  sInitial: 5000,
+  sMonthly: 200,
+  sRate: 3,
 };
 
 function Kpi({
@@ -88,7 +92,7 @@ function Invest() {
   const scale = useCurrencyScale();
   const { t, count } = useT();
 
-  const result = useMemo(
+  const investResult = useMemo(
     () =>
       computeInvest({
         initial: s.initial,
@@ -100,6 +104,45 @@ function Invest() {
     [s.initial, s.monthly, s.rate, s.years, s.inflation],
   );
 
+  const savingsResult = useMemo(
+    () =>
+      computeInvest({
+        initial: s.sInitial,
+        monthly: s.sMonthly,
+        rate: s.sRate,
+        years: s.years,
+        inflation: s.inflation,
+      }),
+    [s.sInitial, s.sMonthly, s.sRate, s.years, s.inflation],
+  );
+
+  // Combined view: investments plus the optional savings account, on the same horizon.
+  const result = useMemo(() => {
+    if (!s.savings) return investResult;
+    const rows = investResult.rows.map((r, i) => {
+      const o = savingsResult.rows[i] ?? r;
+      return {
+        ...r,
+        contributedThisYear: r.contributedThisYear + o.contributedThisYear,
+        totalContributed: r.totalContributed + o.totalContributed,
+        growth: r.growth + o.growth,
+        balance: r.balance + o.balance,
+      };
+    });
+    const finalValue = investResult.finalValue + savingsResult.finalValue;
+    const totalContributed = investResult.totalContributed + savingsResult.totalContributed;
+    const totalGrowth = investResult.totalGrowth + savingsResult.totalGrowth;
+    return {
+      ...investResult,
+      rows,
+      finalValue,
+      totalContributed,
+      totalGrowth,
+      growthShare: finalValue > 0 ? totalGrowth / finalValue : 0,
+      realValue: investResult.realValue + savingsResult.realValue,
+    };
+  }, [s.savings, investResult, savingsResult]);
+
   const yearlyIncome = (result.finalValue * Math.max(0, s.withdrawRate)) / 100;
   const monthlyIncome = yearlyIncome / 12;
   const inflationFactor = Math.pow(1 + s.inflation / 100, Math.max(0, Math.round(s.years)));
@@ -108,8 +151,8 @@ function Invest() {
 
   return (
     <div className="grid gap-10 lg:grid-cols-[380px_1fr]">
-      <div className="lg:sticky lg:top-32 lg:self-start">
-        <Panel className="space-y-6">
+      <div className="space-y-6 lg:sticky lg:top-32 lg:self-start">
+        <Panel title={t("Investments")} className="space-y-6">
           <NumberSlider
             label={t("Initial amount")}
             value={s.initial}
@@ -171,6 +214,55 @@ function Invest() {
             )}
           </div>
         </Panel>
+
+        <Panel className="space-y-6">
+          <div className="flex items-center justify-between gap-4">
+            <label htmlFor="savings" className="text-sm font-semibold tracking-tight">
+              {t("Savings account")}
+            </label>
+            <Switch id="savings" checked={s.savings} onCheckedChange={(v) => patch({ savings: v })} />
+          </div>
+          {!s.savings ? (
+            <p className="-mt-3 text-xs leading-relaxed text-muted-foreground">
+              {t("Add money you keep in a savings account. It grows alongside your investments over the same period.")}
+            </p>
+          ) : (
+            <>
+              <NumberSlider
+                label={t("Initial amount")}
+                value={s.sInitial}
+                onChange={(v) => patch({ sInitial: v })}
+                min={0}
+                max={250000 * scale}
+                step={500 * scale}
+                suffix={symbol}
+                suffixPosition="left"
+              />
+              <NumberSlider
+                label={t("Monthly deposit")}
+                value={s.sMonthly}
+                onChange={(v) => patch({ sMonthly: v })}
+                min={0}
+                max={5000 * scale}
+                step={50 * scale}
+                suffix={symbol}
+                suffixPosition="left"
+              />
+              <NumberSlider
+                label={t("Interest rate")}
+                value={s.sRate}
+                onChange={(v) => patch({ sRate: v })}
+                min={0}
+                max={10}
+                step={0.1}
+                suffix="%"
+              />
+              <p className="text-xs text-muted-foreground">
+                {t("Same period as your investments: {years}.", { years: count(Math.round(s.years), "year") })}
+              </p>
+            </>
+          )}
+        </Panel>
       </div>
 
       <div className="space-y-8">
@@ -216,6 +308,18 @@ function Invest() {
                   />
                 )}
               </div>
+              {s.savings && (
+                <div className="tnum mt-6 grid gap-2 border-t border-border pt-4 text-sm sm:grid-cols-2">
+                  <p className="flex justify-between gap-4">
+                    <span className="text-muted-foreground">{t("Investments")}</span>
+                    <span className="font-medium">{money(investResult.finalValue)}</span>
+                  </p>
+                  <p className="flex justify-between gap-4">
+                    <span className="text-muted-foreground">{t("Savings account")}</span>
+                    <span className="font-medium">{money(savingsResult.finalValue)}</span>
+                  </p>
+                </div>
+              )}
             </Panel>
 
             <Panel title={t("Growth over time")}>
