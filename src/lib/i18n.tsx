@@ -7,6 +7,28 @@ const STORAGE_KEY = "finbuddy.lang";
 
 /** English source text (with {placeholders}) → Czech. Missing keys fall back to English. */
 const CS: Record<string, string> = {
+  "Answer the plan questions →": "Zodpovědět otázky plánu →",
+  "Made with FinBuddy · {date}": "Vytvořeno ve FinBuddy · {date}",
+  "Term": "Doba splácení",
+  "Loan amount": "Výše úvěru",
+  "Plan": "Plán",
+  "Mortgage": "Hypotéka",
+  "The details": "Podrobnosti",
+  "Invested {a} · Savings {b}": "Investice {a} · Spoření {b}",
+  "Same period as your investments: {years}.": "Stejné období jako investice: {years}.",
+  "Interest rate": "Úroková sazba",
+  "Monthly deposit": "Měsíční vklad",
+  "Add money you keep in a savings account. It grows alongside your investments over the same period.": "Přidejte peníze, které držíte na spořicím účtu. Rostou spolu s investicemi po stejnou dobu.",
+  "Savings account": "Spořicí účet",
+  "Investments": "Investice",
+  "In savings today": "Na spoření dnes",
+  "Invested today": "Investováno dnes",
+  "Leave out your everyday current account. Together with your investments this is your starting pot.": "Nezahrnujte běžný účet. Spolu s investicemi je to váš počáteční kapitál.",
+  "Cash in savings or term deposits that counts towards your future.": "Hotovost na spořicích účtech nebo termínovaných vkladech určená pro budoucnost.",
+  "How much do you have in savings accounts today?": "Kolik máte dnes na spořicích účtech?",
+  "Use today's value. Avoid counting your home unless you plan to sell it.": "Použijte dnešní hodnotu. Nepočítejte bydlení, pokud ho neplánujete prodat.",
+  "Funds, shares, ETFs, pension pots — money that's in the market.": "Fondy, akcie, ETF, penzijní spoření — peníze na trhu.",
+  "How much do you have invested today?": "Kolik máte dnes investováno?",
   // Shell
   Currency: "Měna",
   Language: "Jazyk",
