@@ -11,8 +11,6 @@ const CS: Record<string, string> = {
   "Made with FinBuddy · {date}": "Vytvořeno ve FinBuddy · {date}",
   "Term": "Doba splácení",
   "Loan amount": "Výše úvěru",
-  "Plan": "Plán",
-  "Mortgage": "Hypotéka",
   "The details": "Podrobnosti",
   "Invested {a} · Savings {b}": "Investice {a} · Spoření {b}",
   "Same period as your investments: {years}.": "Stejné období jako investice: {years}.",
