@@ -290,7 +290,7 @@ function Dashboard() {
 
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Where your money goes */}
-            <Panel title={t("Where your money goes")}>
+            <Panel title={t("Where your money goes")} className="break-inside-avoid">
               <div className="mb-5">
                 <label
                   htmlFor="dashboard-income"
