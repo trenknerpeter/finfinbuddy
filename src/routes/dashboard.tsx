@@ -86,7 +86,7 @@ function NetWorthChart({ rows }: { rows: NetWorthRow[] }) {
   const { money, compact } = useFormatters();
   const { t } = useT();
   return (
-    <div className="h-[300px] w-full">
+    <div className="h-[300px] w-full print:h-[150px]">
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={rows} margin={{ top: 16, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid vertical={false} stroke="var(--border)" />
@@ -290,7 +290,7 @@ function Dashboard() {
 
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Where your money goes */}
-            <Panel title={t("Where your money goes")}>
+            <Panel title={t("Where your money goes")} className="break-inside-avoid">
               <div className="mb-5">
                 <label
                   htmlFor="dashboard-income"
@@ -356,7 +356,7 @@ function Dashboard() {
             </Panel>
 
             {/* Where you're headed */}
-            <Panel title={t("Where you're headed")}>
+            <Panel title={t("Where you're headed")} className="break-inside-avoid">
               <p className="mb-4 text-xs text-muted-foreground">
                 {t("Net worth over time — savings growth minus the mortgage balance.")}
               </p>
@@ -371,8 +371,8 @@ function Dashboard() {
           </div>
 
           {/* Print-only page 2: the details behind the overview. */}
-          <div className="plan-print-summary hidden print:block">
-            <div className="plan-print-summary-card space-y-5 rounded-lg border border-border p-6 text-sm">
+          <div className="hidden print:block">
+            <div className="plan-print-summary-card space-y-5 rounded-lg border border-border p-6 text-sm print:space-y-3 print:p-4">
               <p className="font-semibold tracking-tight">{t("The details")}</p>
               {[
                 {
@@ -447,11 +447,11 @@ function Dashboard() {
                 {t("Made with FinBuddy · {date}", {
                   date: new Date().toLocaleDateString(locale, { year: "numeric", month: "long", day: "numeric" }),
                 })}
+               </p>
+              <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+                {t("FinBuddy does arithmetic, not advice. These are projections based on assumptions you can change — not a prediction, and not a recommendation to buy or sell anything.")}
               </p>
             </div>
-            <p className="plan-print-disclaimer mt-8 text-xs leading-relaxed text-muted-foreground">
-              {t("FinBuddy does arithmetic, not advice. These are projections based on assumptions you can change — not a prediction, and not a recommendation to buy or sell anything.")}
-            </p>
           </div>
 
           {/* Missing-data hints */}
