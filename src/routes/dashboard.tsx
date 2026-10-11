@@ -447,11 +447,11 @@ function Dashboard() {
                 {t("Made with FinBuddy · {date}", {
                   date: new Date().toLocaleDateString(locale, { year: "numeric", month: "long", day: "numeric" }),
                 })}
+               </p>
+              <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+                {t("FinBuddy does arithmetic, not advice. These are projections based on assumptions you can change — not a prediction, and not a recommendation to buy or sell anything.")}
               </p>
             </div>
-            <p className="plan-print-disclaimer mt-8 text-xs leading-relaxed text-muted-foreground">
-              {t("FinBuddy does arithmetic, not advice. These are projections based on assumptions you can change — not a prediction, and not a recommendation to buy or sell anything.")}
-            </p>
           </div>
 
           {/* Missing-data hints */}
