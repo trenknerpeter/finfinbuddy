@@ -371,7 +371,7 @@ function Dashboard() {
           </div>
 
           {/* Print-only page 2: the details behind the overview. */}
-          <div className="plan-print-summary hidden print:block">
+          <div className="hidden print:block">
             <div className="plan-print-summary-card space-y-5 rounded-lg border border-border p-6 text-sm">
               <p className="font-semibold tracking-tight">{t("The details")}</p>
               {[
