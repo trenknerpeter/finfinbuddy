@@ -86,7 +86,7 @@ function NetWorthChart({ rows }: { rows: NetWorthRow[] }) {
   const { money, compact } = useFormatters();
   const { t } = useT();
   return (
-    <div className="h-[300px] w-full">
+    <div className="h-[300px] w-full print:h-[200px]">
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={rows} margin={{ top: 16, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid vertical={false} stroke="var(--border)" />
@@ -356,7 +356,7 @@ function Dashboard() {
             </Panel>
 
             {/* Where you're headed */}
-            <Panel title={t("Where you're headed")}>
+            <Panel title={t("Where you're headed")} className="break-inside-avoid">
               <p className="mb-4 text-xs text-muted-foreground">
                 {t("Net worth over time — savings growth minus the mortgage balance.")}
               </p>
