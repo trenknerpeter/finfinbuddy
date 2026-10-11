@@ -86,7 +86,7 @@ function NetWorthChart({ rows }: { rows: NetWorthRow[] }) {
   const { money, compact } = useFormatters();
   const { t } = useT();
   return (
-    <div className="h-[300px] w-full print:h-[200px]">
+    <div className="h-[300px] w-full print:h-[150px]">
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={rows} margin={{ top: 16, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid vertical={false} stroke="var(--border)" />
@@ -372,7 +372,7 @@ function Dashboard() {
 
           {/* Print-only page 2: the details behind the overview. */}
           <div className="hidden print:block">
-            <div className="plan-print-summary-card space-y-5 rounded-lg border border-border p-6 text-sm">
+            <div className="plan-print-summary-card space-y-5 rounded-lg border border-border p-6 text-sm print:space-y-3 print:p-4">
               <p className="font-semibold tracking-tight">{t("The details")}</p>
               {[
                 {
