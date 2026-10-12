@@ -132,7 +132,7 @@ function Mortgage() {
                   key={t(opt.label)}
                   onClick={() => patch({ solveTerm: opt.value })}
                   className={cn(
-                    "h-9 flex-1 rounded text-sm transition-colors",
+                    "min-h-9 flex-1 rounded px-3 py-1.5 text-sm leading-tight transition-colors",
                     s.solveTerm === opt.value
                       ? "bg-secondary font-medium text-foreground"
                       : "text-muted-foreground hover:text-foreground",
