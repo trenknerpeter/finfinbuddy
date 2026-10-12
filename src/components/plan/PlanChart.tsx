@@ -19,18 +19,26 @@ type Props = {
   target: number;
   stopAge: number;
   reachedAge: number | null;
+  /** Age the pot also covers the remaining mortgage, when there is one. */
+  debtFreeAge?: number | null;
 };
 
-export function PlanChart({ rows, target, stopAge, reachedAge }: Props) {
+export function PlanChart({ rows, target, stopAge, reachedAge, debtFreeAge = null }: Props) {
   const { money, compact } = useFormatters();
   const { t } = useT();
   const showTarget = isFinite(target);
+  const showDebt = showTarget && rows.some((r) => r.debt > 0.5);
+  const data: (PlanYearRow & { need?: number })[] = showDebt ? rows.map((r) => ({ ...r, need: target + r.debt })) : rows;
   const reachedRow = reachedAge !== null ? rows.find((r) => r.age === reachedAge) : undefined;
+  const debtFreeRow =
+    showDebt && debtFreeAge !== null && debtFreeAge !== reachedAge
+      ? data.find((r) => r.age === debtFreeAge)
+      : undefined;
 
   return (
     <div className="h-[340px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={rows} margin={{ top: 24, right: 8, left: 0, bottom: 0 }}>
+        <ComposedChart data={data} margin={{ top: 24, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid vertical={false} stroke="var(--border)" />
           <XAxis
             dataKey="age"
@@ -48,7 +56,10 @@ export function PlanChart({ rows, target, stopAge, reachedAge }: Props) {
             width={60}
             tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
             tickFormatter={(v: number) => compact(v)}
-            domain={[0, (dataMax: number) => Math.max(dataMax, showTarget ? target : 0) * 1.05]}
+            domain={[
+              0,
+              (dataMax: number) => Math.max(dataMax, showTarget ? target + (showDebt ? (rows[0]?.debt ?? 0) : 0) : 0) * 1.05,
+            ]}
           />
           <Tooltip
             cursor={{ stroke: "var(--border)" }}
@@ -74,6 +85,12 @@ export function PlanChart({ rows, target, stopAge, reachedAge }: Props) {
                           <dd>{money(p.savings)}</dd>
                         </div>
                       </>
+                    )}
+                    {p.debt > 0.5 && (
+                      <div className="flex justify-between gap-6">
+                        <dt className="text-muted-foreground">{t("Mortgage left")}</dt>
+                        <dd>{money(p.debt)}</dd>
+                      </div>
                     )}
                     <div className="flex justify-between gap-6">
                       <dt className="text-muted-foreground">{t("Put in")}</dt>
@@ -116,6 +133,18 @@ export function PlanChart({ rows, target, stopAge, reachedAge }: Props) {
             dot={false}
             animationDuration={200}
           />
+          {showDebt && (
+            <Line
+              type="monotone"
+              dataKey="need"
+              stroke="var(--muted-foreground)"
+              strokeWidth={1.5}
+              strokeDasharray="2 3"
+              dot={false}
+              activeDot={false}
+              animationDuration={200}
+            />
+          )}
           {showTarget && (
             <ReferenceLine
               y={target}
@@ -150,8 +179,26 @@ export function PlanChart({ rows, target, stopAge, reachedAge }: Props) {
               strokeWidth={2}
               label={{
                 value: t("{n} — you reach your number", { n: reachedRow.age }),
-                position: "top",
+                // Below the dot when the debt-free dot sits just above it.
+                position: debtFreeRow ? "bottom" : "top",
                 fill: "var(--accent)",
+                fontSize: 12,
+                fontWeight: 600,
+              }}
+            />
+          )}
+          {debtFreeRow?.need !== undefined && (
+            <ReferenceDot
+              x={debtFreeRow.age}
+              y={debtFreeRow.need}
+              r={5}
+              fill="var(--foreground)"
+              stroke="var(--background)"
+              strokeWidth={2}
+              label={{
+                value: t("{n} — mortgage cleared too", { n: debtFreeRow.age }),
+                position: "top",
+                fill: "var(--foreground)",
                 fontSize: 12,
                 fontWeight: 600,
               }}

@@ -202,6 +202,8 @@ export type PlanYearRow = {
   balance: number;
   invest: number;
   savings: number;
+  /** Remaining mortgage in today's money (0 without a mortgage). */
+  debt: number;
 };
 
 /** Yearly projection rows from the current age to a few years past the later of stop/reached. */
@@ -209,6 +211,7 @@ export function planRows(
   profile: PlanProfile,
   assumptions: PlanAssumptions,
   reachedAge: number | null,
+  debtAt: (months: number) => number = () => 0,
 ): PlanYearRow[] {
   const start = Math.round(num(profile.age));
   const later = Math.max(Math.round(num(profile.stop)), reachedAge ?? 0);
@@ -225,6 +228,7 @@ export function planRows(
       balance: pots.total,
       invest: pots.invest,
       savings: pots.savings,
+      debt: debtAt(months),
     });
   }
   return rows;

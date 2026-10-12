@@ -51,6 +51,9 @@ const DEFAULTS = {
   extraPayment: false,
   extraAmount: 10000,
   extraYear: 3,
+  homeValue: 0,
+  homeGrowth: false,
+  homeRate: 1,
 };
 
 function Mortgage() {
@@ -185,6 +188,53 @@ function Mortgage() {
               suffix={t("years")}
             />
           )}
+
+          <div className="space-y-4 border-t border-border pt-6">
+            <NumberSlider
+              label={t("Property value (optional)")}
+              value={s.homeValue}
+              onChange={(v) => patch({ homeValue: v })}
+              min={0}
+              max={Math.max(2000000 * scale, s.principal * 2)}
+              step={10000 * scale}
+              suffix={symbol}
+              suffixPosition="left"
+            />
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              {t("What your home would sell for today. Counts towards your net worth on the Dashboard — never towards your retirement money.")}
+            </p>
+            {s.homeValue > 0 && (
+              <div className="rounded-md border border-border bg-secondary/40 p-4">
+                <div className="flex min-h-11 items-center justify-between gap-4">
+                  <label htmlFor="home-growth" className="text-sm font-semibold">
+                    {t("Include price growth")}
+                  </label>
+                  <Switch
+                    id="home-growth"
+                    checked={s.homeGrowth}
+                    onCheckedChange={(checked) => patch({ homeGrowth: checked })}
+                    aria-label={t("Include price growth")}
+                  />
+                </div>
+                {s.homeGrowth && (
+                  <div className="mt-4 space-y-3 border-t border-border pt-4">
+                    <NumberSlider
+                      label={t("Growth above inflation")}
+                      value={s.homeRate}
+                      onChange={(v) => patch({ homeRate: Math.min(v, 3) })}
+                      min={0}
+                      max={3}
+                      step={0.1}
+                      suffix="%"
+                    />
+                    <p className="text-xs leading-relaxed text-muted-foreground">
+                      {t("On top of inflation — everything here is in today's money. 1% means the home gains 1% a year more than prices in general.")}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           <div className="rounded-md border border-border bg-secondary/40 p-4">
             <div className="flex min-h-11 items-center justify-between gap-4">

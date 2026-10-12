@@ -25,6 +25,8 @@ import {
   type PlanProfile,
   type SavedPlan,
 } from "@/lib/plan";
+import { loadMortgage } from "@/lib/dashboard";
+import { ageAt, mortgageSchedule, realBalanceAt, retirementMilestones } from "@/lib/retirement";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 
@@ -400,6 +402,10 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
     infl: plan.infl,
   });
   const planSave = monthlyTotal(plan);
+  const [schedule] = useState(() => {
+    const m = loadMortgage();
+    return m && m.principal > 0 ? mortgageSchedule(m) : null;
+  });
   const [levers, setLevers] = useState<Levers>({
     save: planSave,
     stop: plan.stop,
@@ -455,10 +461,22 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
   const potAtStop = projectPotAtStop(effProfile, effAssumptions);
   const gap = isFinite(target) ? target - potAtStop : Infinity;
 
+  // Milestone 2: when the pot also covers what's left on the mortgage (Mortgage tab, if filled in).
+  const milestones = retirementMilestones(effProfile, effAssumptions, schedule);
+  const debtFreeAge = milestones.debtFreeMonths === null ? null : ageAt(plan, milestones.debtFreeMonths);
+  const owesAtReached = reachedAge !== null && milestones.owedAtLiving > 0.5;
+  const chartEndAge = Math.max(reachedAge ?? 0, owesAtReached ? (debtFreeAge ?? 0) : 0);
+
   const rows = useMemo(
-    () => planRows(effProfile, effAssumptions, reachedAge !== null && reachedAge > plan.age ? reachedAge : null),
+    () =>
+      planRows(
+        effProfile,
+        effAssumptions,
+        chartEndAge > plan.age ? chartEndAge : null,
+        (m) => realBalanceAt(schedule, m, effAssumptions.infl),
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [plan.age, plan.invested, plan.cash, plan.saveInvest, plan.saveCash, levers.save, levers.stop, levers.spend, levers.ret, assumptions, reachedAge],
+    [plan.age, plan.invested, plan.cash, plan.saveInvest, plan.saveCash, levers.save, levers.stop, levers.spend, levers.ret, assumptions, chartEndAge, schedule],
   );
 
   // Solve points are computed from the saved plan, not the dragged levers.
@@ -529,6 +547,20 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
               </p>
             </>
           )}
+          {owesAtReached && (
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+              {debtFreeAge !== null
+                ? t("You'd still owe {d} on the mortgage at {age}. Keep going until {age2} to clear it.", {
+                    d: money(milestones.owedAtLiving),
+                    age: reachedAge ?? plan.age,
+                    age2: debtFreeAge,
+                  })
+                : t("You'd still owe {d} on the mortgage at {age}.", {
+                    d: money(milestones.owedAtLiving),
+                    age: reachedAge ?? plan.age,
+                  })}
+            </p>
+          )}
         </div>
         <div className="flex shrink-0 items-center gap-2 print:hidden">
           <button
@@ -596,7 +628,13 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
       </Panel>
 
       <Panel title={t("Getting there")}>
-        <PlanChart rows={rows} target={target} stopAge={levers.stop} reachedAge={reachedAge} />
+        <PlanChart
+          rows={rows}
+          target={target}
+          stopAge={levers.stop}
+          reachedAge={reachedAge}
+          debtFreeAge={owesAtReached ? debtFreeAge : null}
+        />
         <div className="mt-4 flex flex-wrap items-center gap-5 text-xs text-muted-foreground">
           <span className="flex items-center gap-2">
             <span className="size-2.5 rounded-sm bg-neutral-fill" /> {t("Money you put in")}
@@ -604,6 +642,12 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
           <span className="flex items-center gap-2">
             <span className="size-2.5 rounded-sm bg-primary/30 ring-1 ring-primary" /> {t("Growth")}
           </span>
+          {rows.some((r) => r.debt > 0.5) && (
+            <span className="flex items-center gap-2">
+              <span className="h-0 w-3 border-t-2 border-dotted border-muted-foreground" />{" "}
+              {t("Your number + mortgage left")}
+            </span>
+          )}
         </div>
       </Panel>
 

@@ -1,15 +1,12 @@
-import { buildScenario, num, solvePayment } from "./finance";
+import { num } from "./finance";
+import { loadPlan, potsAfterMonths, startPot, type SavedPlan } from "./plan";
 import {
-  DEFAULT_ASSUMPTIONS,
-  loadPlan,
-  monthsToTarget,
-  potsAfterMonths,
-  startPot,
-  targetPotFor,
-  type PlanAssumptions,
-  type PlanProfile,
-  type SavedPlan,
-} from "./plan";
+  ageAt,
+  homeValueAt,
+  mortgageSchedule,
+  realBalanceAt,
+  retirementMilestones,
+} from "./retirement";
 
 export type InvestScenario = {
   initial: number;
@@ -31,6 +28,9 @@ export type MortgageScenario = {
   years: number;
   payment: number;
   solveTerm: boolean;
+  homeValue: number;
+  homeGrowth: boolean;
+  homeRate: number;
 };
 
 export type DashboardStore = {
@@ -76,6 +76,9 @@ export function loadMortgage(): MortgageScenario | null {
     years: num(p.years, 20),
     payment: num(p.payment),
     solveTerm: Boolean(p.solveTerm),
+    homeValue: num(p.homeValue),
+    homeGrowth: Boolean(p.homeGrowth),
+    homeRate: num(p.homeRate, 1),
   };
 }
 
@@ -92,26 +95,45 @@ export function saveDashboard(store: DashboardStore) {
   }
 }
 
-export type NetWorthRow = { year: number; assets: number; debt: number; netWorth: number };
+export type PathRow = {
+  age: number;
+  pot: number;
+  /** Your number plus the mortgage still owed, in today's money. */
+  need: number;
+  debt: number;
+};
 
 export type DashboardMetrics = {
   assets: number;
   invested: number;
   cash: number;
-  assetsSource: "plan" | "invest" | "none";
+  homeValue: number;
   mortgageBalance: number;
+  /** Home + investments + savings − mortgage. */
   netWorth: number;
   savingsRate: number | null;
-  debtToAssets: number | null;
+  /** Share of the home you own outright; null without a home value. */
+  ownership: number | null;
+  /** Months until the mortgage is paid off; null if never or no mortgage. */
+  mortgageMonths: number | null;
   readiness: number | null;
-  projectedStopAge: number | null;
+  livingAge: number | null;
+  debtFreeAge: number | null;
+  /** Mortgage still owed at the living age, in today's money. */
+  owedAtLiving: number;
+  age: number | null;
   targetAge: number;
+  target: number | null;
   mortgagePayment: number;
   monthlyInvesting: number;
   monthlySavings: number;
   freeCash: number | null;
   income: number;
-  rows: NetWorthRow[];
+  /** Retirement path rows (plan only). */
+  path: PathRow[];
+  /** Net worth at the debt-free age (or living age / target age). */
+  /** `clearable`: the pot also covers the debt then, so it can be paid off in one go. */
+  outlook: { age: number; netWorth: number; debt: number; clearable: boolean } | null;
 };
 
 export function deriveMetrics(input: {
@@ -123,86 +145,91 @@ export function deriveMetrics(input: {
   const { invest, mortgage, plan, income } = input;
 
   // Single source of truth for what you own today: Plan if answered, otherwise the Invest tab.
-  const investSavings = invest?.savings ? invest.sInitial : 0;
   const invested = plan ? num(plan.invested) : invest ? num(invest.initial) : 0;
-  const cash = plan ? num(plan.cash) : investSavings;
+  const cash = plan ? num(plan.cash) : invest?.savings ? num(invest.sInitial) : 0;
   const assets = invested + cash;
 
+  const schedule = mortgage && mortgage.principal > 0 ? mortgageSchedule(mortgage) : null;
   const mortgageBalance = mortgage ? num(mortgage.principal) : 0;
-  const netWorth = assets - mortgageBalance;
+  const homeValue = mortgage ? num(mortgage.homeValue) : 0;
+  const netWorth = homeValue + assets - mortgageBalance;
+  const ownership =
+    homeValue > 0 ? Math.max(0, Math.min(1, (homeValue - mortgageBalance) / homeValue)) : null;
 
   const monthlyInvesting = plan ? num(plan.saveInvest) : invest ? num(invest.monthly) : 0;
-  const monthlySavings = plan
-    ? num(plan.saveCash)
-    : invest?.savings
-      ? num(invest.sMonthly)
-      : 0;
+  const monthlySavings = plan ? num(plan.saveCash) : invest?.savings ? num(invest.sMonthly) : 0;
   const monthlySaving = monthlyInvesting + monthlySavings;
   const savingsRate = income > 0 && monthlySaving > 0 ? monthlySaving / income : null;
-  const debtToAssets = assets > 0 && mortgageBalance > 0 ? mortgageBalance / assets : null;
 
-  // Without a plan, project from the Invest tab's own rates.
-  const assumptions: PlanAssumptions = plan
-    ? { ret: plan.ret, cashRet: plan.cashRet, wd: plan.wd, infl: plan.infl }
-    : invest
-      ? { ret: invest.rate, cashRet: invest.sRate, wd: invest.withdrawRate, infl: invest.inflation }
-      : DEFAULT_ASSUMPTIONS;
-
-  let readiness: number | null = null;
-  let projectedStopAge: number | null = null;
-  if (plan) {
-    const target = targetPotFor(plan.spend, assumptions.wd);
-    if (isFinite(target) && target > 0) readiness = startPot(plan) / target;
-    const months = monthsToTarget(plan, assumptions, target);
-    if (months !== null) projectedStopAge = num(plan.age) + months / 12;
-  }
-
-  const mortgagePayment = mortgage
-    ? mortgage.solveTerm && mortgage.payment > 0
-      ? num(mortgage.payment)
-      : solvePayment(mortgage.principal, mortgage.rate, mortgage.years)
-    : 0;
-
+  const mortgagePayment = schedule ? schedule.payment : 0;
   const freeCash = income > 0 ? income - mortgagePayment - monthlySaving : null;
 
-  // Net worth projection: savings pot growth (real terms) minus mortgage balance.
-  const rows: NetWorthRow[] = [];
-  const horizon = Math.min(40, Math.max(plan ? num(plan.stop) - num(plan.age) : 0, mortgage ? Math.ceil(num(mortgage.years)) : 0, 10));
-  const projection: PlanProfile = {
-    age: 0,
-    stop: 0,
-    spend: 0,
-    invested,
-    cash,
-    saveInvest: monthlyInvesting,
-    saveCash: monthlySavings,
-  };
-  const balanceByYear = mortgage
-    ? buildScenario(mortgage.principal, mortgage.rate, mortgage.years * 12, mortgagePayment).balanceByYear
-    : [];
-  for (let y = 0; y <= horizon; y++) {
-    const a = potsAfterMonths(projection, assumptions, y * 12).total;
-    const d = balanceByYear[Math.min(y, balanceByYear.length - 1)] ?? 0;
-    rows.push({ year: y, assets: a, debt: d, netWorth: a - d });
+  let readiness: number | null = null;
+  let livingAge: number | null = null;
+  let debtFreeAge: number | null = null;
+  let owedAtLiving = 0;
+  let target: number | null = null;
+  const path: PathRow[] = [];
+  let outlook: DashboardMetrics["outlook"] = null;
+
+  if (plan) {
+    const ms = retirementMilestones(plan, plan, schedule);
+    const debtAt = (m: number) => realBalanceAt(schedule, m, plan.infl);
+    if (isFinite(ms.target) && ms.target > 0) {
+      target = ms.target;
+      readiness = startPot(plan) / ms.target;
+    }
+    livingAge = ms.livingMonths === null ? null : ageAt(plan, ms.livingMonths);
+    debtFreeAge = ms.debtFreeMonths === null ? null : ageAt(plan, ms.debtFreeMonths);
+    owedAtLiving = ms.owedAtLiving;
+
+    // Runs a few years past the later of the target age and being debt-free.
+    const start = Math.round(num(plan.age));
+    const later = Math.max(Math.round(num(plan.stop)), debtFreeAge ?? livingAge ?? 0);
+    const end = Math.min(90, later + 3);
+    for (let age = start; age <= end; age++) {
+      const m = (age - start) * 12;
+      const debt = debtAt(m);
+      path.push({ age, pot: potsAfterMonths(plan, plan, m).total, need: ms.target + debt, debt });
+    }
+
+    const outlookMonths =
+      ms.debtFreeMonths ?? ms.livingMonths ?? Math.max(0, (num(plan.stop) - num(plan.age)) * 12);
+    const debt = debtAt(outlookMonths);
+    outlook = {
+      age: ageAt(plan, outlookMonths),
+      netWorth:
+        (mortgage ? homeValueAt(mortgage, outlookMonths) : 0) +
+        potsAfterMonths(plan, plan, outlookMonths).total -
+        debt,
+      debt,
+      clearable: ms.debtFreeMonths !== null,
+    };
   }
 
   return {
     assets,
     invested,
     cash,
-    assetsSource: plan ? "plan" : invest ? "invest" : "none",
+    homeValue,
     mortgageBalance,
     netWorth,
     savingsRate,
-    debtToAssets,
+    ownership,
+    mortgageMonths: schedule?.months ?? null,
     readiness,
-    projectedStopAge,
+    livingAge,
+    debtFreeAge,
+    owedAtLiving,
+    age: plan ? num(plan.age) : null,
     targetAge: plan ? num(plan.stop) : 0,
+    target,
     mortgagePayment,
     monthlyInvesting,
     monthlySavings,
     freeCash,
     income,
-    rows,
+    path,
+    outlook,
   };
 }

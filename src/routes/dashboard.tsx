@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Area,
   CartesianGrid,
   ComposedChart,
   Line,
+  ReferenceDot,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -19,8 +21,9 @@ import {
   loadInvest,
   loadMortgage,
   saveDashboard,
+  type DashboardMetrics,
   type DashboardStore,
-  type NetWorthRow,
+  type PathRow,
 } from "@/lib/dashboard";
 import { useT } from "@/lib/i18n";
 import { loadPlan } from "@/lib/plan";
@@ -51,11 +54,13 @@ function Kpi({
   label,
   value,
   caption,
+  action,
   accent,
 }: {
   label: string;
   value: string;
-  caption?: string;
+  caption?: string | undefined;
+  action?: ReactNode;
   accent?: boolean;
 }) {
   const len = value.length;
@@ -78,20 +83,30 @@ function Kpi({
         {value}
       </p>
       {caption && <p className="mt-1 text-xs text-muted-foreground">{caption}</p>}
+      {action && <p className="mt-2 text-xs font-medium print:hidden">{action}</p>}
     </div>
   );
 }
 
-function NetWorthChart({ rows }: { rows: NetWorthRow[] }) {
+function RetirementPathChart({ m }: { m: DashboardMetrics }) {
   const { money, compact } = useFormatters();
   const { t } = useT();
+  const { path, target, targetAge, livingAge, debtFreeAge } = m;
+  const showDebt = path.some((r) => r.debt > 0.5);
+  const living = livingAge !== null ? path.find((r) => r.age === livingAge) : undefined;
+  const debtFree =
+    showDebt && debtFreeAge !== null && debtFreeAge !== livingAge
+      ? path.find((r) => r.age === debtFreeAge)
+      : undefined;
+  const labelStyle = { fill: "var(--muted-foreground)", fontSize: 12 };
+
   return (
-    <div className="h-[300px] w-full print:h-[150px]">
+    <div className="h-[300px] w-full print:h-[170px]">
       <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={rows} margin={{ top: 16, right: 8, left: 0, bottom: 0 }}>
+        <ComposedChart data={path} margin={{ top: 24, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid vertical={false} stroke="var(--border)" />
           <XAxis
-            dataKey="year"
+            dataKey="age"
             type="number"
             domain={["dataMin", "dataMax"]}
             tickLine={false}
@@ -99,7 +114,6 @@ function NetWorthChart({ rows }: { rows: NetWorthRow[] }) {
             tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
             tickMargin={10}
             minTickGap={24}
-            tickFormatter={(y: number) => t("Year {n}", { n: y })}
           />
           <YAxis
             tickLine={false}
@@ -112,23 +126,27 @@ function NetWorthChart({ rows }: { rows: NetWorthRow[] }) {
             cursor={{ stroke: "var(--border)" }}
             content={({ active, payload, label }) => {
               if (!active || !payload?.length) return null;
-              const p = payload[0]?.payload as NetWorthRow;
+              const p = payload[0]?.payload as PathRow;
               return (
                 <div className="rounded-md border border-border bg-card p-3 text-xs">
-                  <p className="mb-2 font-semibold">{t("Year {n}", { n: String(label) })}</p>
+                  <p className="mb-2 font-semibold">{t("Age {n}", { n: String(label) })}</p>
                   <dl className="tnum space-y-1">
                     <div className="flex justify-between gap-6">
-                      <dt className="text-muted-foreground">{t("Net worth")}</dt>
-                      <dd className="font-medium">{money(p.netWorth)}</dd>
+                      <dt className="text-muted-foreground">{t("Pot")}</dt>
+                      <dd className="font-medium text-primary">{money(p.pot)}</dd>
                     </div>
-                    <div className="flex justify-between gap-6">
-                      <dt className="text-muted-foreground">{t("Assets")}</dt>
-                      <dd className="text-primary">{money(p.assets)}</dd>
-                    </div>
-                    <div className="flex justify-between gap-6">
-                      <dt className="text-muted-foreground">{t("Debt")}</dt>
-                      <dd>{money(p.debt)}</dd>
-                    </div>
+                    {target !== null && (
+                      <div className="flex justify-between gap-6">
+                        <dt className="text-muted-foreground">{t("Your number")}</dt>
+                        <dd>{money(target)}</dd>
+                      </div>
+                    )}
+                    {p.debt > 0.5 && (
+                      <div className="flex justify-between gap-6">
+                        <dt className="text-muted-foreground">{t("Mortgage left")}</dt>
+                        <dd>{money(p.debt)}</dd>
+                      </div>
+                    )}
                   </dl>
                 </div>
               );
@@ -136,30 +154,83 @@ function NetWorthChart({ rows }: { rows: NetWorthRow[] }) {
           />
           <Area
             type="monotone"
-            dataKey="assets"
+            dataKey="pot"
             stroke="var(--accent)"
-            strokeWidth={1.5}
-            fill="var(--accent)"
-            fillOpacity={0.12}
-            animationDuration={200}
-          />
-          <Line
-            type="monotone"
-            dataKey="netWorth"
-            stroke="var(--foreground)"
             strokeWidth={2}
-            dot={false}
+            fill="var(--accent)"
+            fillOpacity={0.15}
             animationDuration={200}
           />
-          <Line
-            type="monotone"
-            dataKey="debt"
+          {showDebt && (
+            <Line
+              type="monotone"
+              dataKey="need"
+              stroke="var(--muted-foreground)"
+              strokeWidth={1.5}
+              strokeDasharray="2 3"
+              dot={false}
+              activeDot={false}
+              animationDuration={200}
+            />
+          )}
+          {target !== null && (
+            <ReferenceLine
+              y={target}
+              stroke="var(--muted-foreground)"
+              strokeDasharray="6 4"
+              ifOverflow="extendDomain"
+            />
+          )}
+          <ReferenceLine
+            x={targetAge}
             stroke="var(--muted-foreground)"
-            strokeWidth={1.5}
-            strokeDasharray="4 3"
-            dot={false}
-            animationDuration={200}
+            strokeDasharray="3 3"
+            label={(props: { viewBox?: { x?: number; y?: number } }) => {
+              // Left of the line, so it never runs off the right edge.
+              const { x = 0, y = 0 } = props.viewBox ?? {};
+              return (
+                <text x={x - 6} y={y + 12} textAnchor="end" {...labelStyle}>
+                  {t("Target age {n}", { n: targetAge })}
+                </text>
+              );
+            }}
           />
+          {target !== null && living && living.age > path[0]!.age && (
+            <ReferenceDot
+              x={living.age}
+              y={target}
+              r={5}
+              fill="var(--accent)"
+              stroke="var(--background)"
+              strokeWidth={2}
+              label={(props: { viewBox?: { x?: number; y?: number; width?: number } }) => {
+                const { x = 0, y = 0, width = 0 } = props.viewBox ?? {};
+                return (
+                  <text x={x + width / 2} y={y + 22} textAnchor="middle" fill="var(--accent)" fontSize={12} fontWeight={600}>
+                    {living.age}
+                  </text>
+                );
+              }}
+            />
+          )}
+          {debtFree && (
+            <ReferenceDot
+              x={debtFree.age}
+              y={debtFree.need}
+              r={5}
+              fill="var(--foreground)"
+              stroke="var(--background)"
+              strokeWidth={2}
+              label={(props: { viewBox?: { x?: number; y?: number; width?: number } }) => {
+                const { x = 0, y = 0, width = 0 } = props.viewBox ?? {};
+                return (
+                  <text x={x + width / 2} y={y - 10} textAnchor="middle" fill="var(--foreground)" fontSize={12} fontWeight={600}>
+                    {debtFree.age}
+                  </text>
+                );
+              }}
+            />
+          )}
         </ComposedChart>
       </ResponsiveContainer>
     </div>
@@ -203,6 +274,13 @@ function Dashboard() {
   if (!hydrated) return null;
 
   const showEmpty = !hasAnyData;
+
+  const mortgageFreeLabel =
+    m.mortgageMonths === null
+      ? null
+      : m.age !== null
+        ? t("Mortgage-free at {age}", { age: Math.round(m.age + m.mortgageMonths / 12) })
+        : t("Mortgage-free in {years}", { years: count(Math.ceil(m.mortgageMonths / 12), "year") });
 
   return (
     <div className="space-y-6">
@@ -256,9 +334,23 @@ function Dashboard() {
                 label={t("Net worth")}
                 value={money(m.netWorth)}
                 caption={
-                  m.cash > 0
-                    ? t("Invested {a} · Savings {b}", { a: money(m.invested), b: money(m.cash) })
-                    : t("Assets minus debts")
+                  m.homeValue > 0
+                    ? t("Home {h} · Investments {a} · Savings {b} · Mortgage −{d}", {
+                        h: money(m.homeValue),
+                        a: money(m.invested),
+                        b: money(m.cash),
+                        d: money(m.mortgageBalance),
+                      })
+                    : m.mortgageBalance > 0
+                      ? t("Excluding your home")
+                      : t("Invested {a} · Savings {b}", { a: money(m.invested), b: money(m.cash) })
+                }
+                action={
+                  m.homeValue === 0 && m.mortgageBalance > 0 ? (
+                    <Link to="/mortgage" className="text-primary hover:underline">
+                      {t("Add your home's value →")}
+                    </Link>
+                  ) : undefined
                 }
                 accent={m.netWorth >= 0}
               />
@@ -269,17 +361,40 @@ function Dashboard() {
                   m.savingsRate !== null ? t("of your monthly income") : t("Add your income below")
                 }
               />
-              <Kpi
-                label={t("Debt-to-assets")}
-                value={m.debtToAssets !== null ? percent(m.debtToAssets * 100) : "—"}
-                caption={t("Mortgage balance vs. what you own")}
-              />
+              {(m.mortgageBalance > 0 || m.homeValue > 0) && (
+                <Kpi
+                  label={t("Home ownership")}
+                  value={
+                    m.ownership !== null
+                      ? t("{p} yours", { p: percent(m.ownership * 100) })
+                      : mortgageFreeLabel ?? "—"
+                  }
+                  caption={
+                    m.mortgageBalance <= 0
+                      ? t("No mortgage")
+                      : m.ownership !== null
+                        ? mortgageFreeLabel ?? t("The payment doesn't pay the loan off")
+                        : m.mortgageMonths !== null
+                          ? t("{years} to go", { years: count(Math.ceil(m.mortgageMonths / 12), "year") })
+                          : undefined
+                  }
+                  action={
+                    m.ownership === null ? (
+                      <Link to="/mortgage" className="text-primary hover:underline">
+                        {t("Add your home's value →")}
+                      </Link>
+                    ) : undefined
+                  }
+                />
+              )}
               <Kpi
                 label={t("Retirement readiness")}
                 value={m.readiness !== null ? percent(m.readiness * 100) : "—"}
                 caption={
-                  m.projectedStopAge !== null
-                    ? t("Stop work at {age}", { age: Math.round(m.projectedStopAge) })
+                  m.livingAge !== null
+                    ? m.debtFreeAge !== null && m.debtFreeAge !== m.livingAge
+                      ? t("From {a} · debt-free from {b}", { a: m.livingAge, b: m.debtFreeAge })
+                      : t("Stop work at {age}", { age: m.livingAge })
                     : m.readiness !== null
                       ? t("of your number")
                       : t("Answer the plan questions →")
@@ -368,16 +483,89 @@ function Dashboard() {
 
             {/* Where you're headed */}
             <Panel title={t("Where you're headed")} className="break-inside-avoid">
-              <p className="mb-4 text-xs text-muted-foreground">
-                {t("Net worth over time — savings growth minus the mortgage balance.")}
-              </p>
-              <NetWorthChart rows={m.rows} />
-              <p className="tnum mt-3 text-xs text-muted-foreground">
-                {t("In {years}: {v}", {
-                  years: count(m.rows.length - 1, "year"),
-                  v: money(m.rows[m.rows.length - 1]?.netWorth ?? 0),
-                })}
-              </p>
+              {m.path.length > 0 ? (
+                <>
+                  <p className="mb-4 text-xs leading-relaxed text-muted-foreground">
+                    {m.livingAge === null
+                      ? t("On this path your pot doesn't reach your number before 90.")
+                      : m.owedAtLiving > 0.5
+                        ? m.debtFreeAge !== null
+                          ? t("From {a} you could live on {v} a month, with {d} still owed on the mortgage. Keep going until {b} to clear it.", {
+                              a: m.livingAge,
+                              v: money(plan?.spend ?? 0),
+                              d: money(m.owedAtLiving),
+                              b: m.debtFreeAge,
+                            })
+                          : t("From {a} you could live on {v} a month, with {d} still owed on the mortgage.", {
+                              a: m.livingAge,
+                              v: money(plan?.spend ?? 0),
+                              d: money(m.owedAtLiving),
+                            })
+                        : t("From {a} you could live on {v} a month.", {
+                            a: m.livingAge,
+                            v: money(plan?.spend ?? 0),
+                          })}
+                  </p>
+                  <RetirementPathChart m={m} />
+                  <div className="mt-4 flex flex-wrap items-center gap-5 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-2">
+                      <span className="size-2.5 rounded-sm bg-primary/30 ring-1 ring-primary" /> {t("Your pot")}
+                    </span>
+                    {m.target !== null && (
+                      <span className="flex items-center gap-2">
+                        <span className="h-0 w-3 border-t-2 border-dashed border-muted-foreground" />{" "}
+                        {t("Your number — {v}", { v: money(m.target) })}
+                      </span>
+                    )}
+                    {m.path.some((r) => r.debt > 0.5) && (
+                      <span className="flex items-center gap-2">
+                        <span className="h-0 w-3 border-t-2 border-dotted border-muted-foreground" />{" "}
+                        {t("Your number + mortgage left")}
+                      </span>
+                    )}
+                  </div>
+                  {m.outlook && (
+                    <p className="tnum mt-3 text-xs text-muted-foreground">
+                      {m.outlook.debt > 0.5 && m.outlook.clearable
+                        ? m.homeValue > 0
+                          ? t("At {age}: net worth {v}. Clear the mortgage and the home is fully yours.", {
+                              age: m.outlook.age,
+                              v: money(m.outlook.netWorth),
+                            })
+                          : t("At {age}: net worth {v}, enough to clear the mortgage too.", {
+                              age: m.outlook.age,
+                              v: money(m.outlook.netWorth),
+                            })
+                        : m.outlook.debt > 0.5
+                        ? t("At {age}: net worth {v}, with {d} still owed on the mortgage.", {
+                            age: m.outlook.age,
+                            v: money(m.outlook.netWorth),
+                            d: money(m.outlook.debt),
+                          })
+                        : m.mortgageBalance > 0
+                          ? m.homeValue > 0
+                            ? t("At {age}: net worth {v}, home fully yours.", {
+                                age: m.outlook.age,
+                                v: money(m.outlook.netWorth),
+                              })
+                            : t("At {age}: net worth {v}, mortgage paid off.", {
+                                age: m.outlook.age,
+                                v: money(m.outlook.netWorth),
+                              })
+                          : t("At {age}: net worth {v}.", { age: m.outlook.age, v: money(m.outlook.netWorth) })}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <div className="py-10 text-center">
+                  <p className="mx-auto max-w-sm text-sm leading-relaxed text-muted-foreground">
+                    {t("Answer the plan questions to see when you can stop working — and when the mortgage is cleared too.")}
+                  </p>
+                  <Link to="/plan" className="mt-4 inline-block text-sm font-medium text-primary hover:underline">
+                    {t("Answer the plan questions →")}
+                  </Link>
+                </div>
+              )}
             </Panel>
           </div>
 
@@ -415,7 +603,19 @@ function Dashboard() {
                         [t("Loan amount"), money(mortgage.principal)],
                         [t("Interest rate"), percent(mortgage.rate)],
                         [t("Mortgage payment"), money(m.mortgagePayment)],
-                        [t("Term"), count(Math.round(mortgage.years), "year")],
+                        [
+                          t("Term"),
+                          m.mortgageMonths !== null ? count(Math.ceil(m.mortgageMonths / 12), "year") : "—",
+                        ],
+                        ...(mortgage.homeValue > 0
+                          ? [
+                              [t("Property value"), money(mortgage.homeValue)],
+                              [
+                                t("Price growth above inflation"),
+                                mortgage.homeGrowth ? percent(mortgage.homeRate) : t("Off"),
+                              ],
+                            ]
+                          : []),
                       ]
                     : null,
                 },

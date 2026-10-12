@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { useCurrency } from "./currency";
 
@@ -12,7 +12,9 @@ export function useScenario<T extends Record<string, Scalar>>(storageKey: string
   const [state, setState] = useState<T>(defaults);
   const { currency } = useCurrency();
   const router = useRouter();
-  const hydrated = useRef(false);
+  // State, not a ref: the mirror effect must skip the render that still holds the defaults,
+  // or it would write them over the saved scenario before it loads.
+  const [hydrated, setHydrated] = useState(false);
 
   const decode = useCallback(
     (params: URLSearchParams): Partial<T> => {
@@ -47,12 +49,12 @@ export function useScenario<T extends Record<string, Scalar>>(storageKey: string
         /* ignore */
       }
     }
-    hydrated.current = true;
+    setHydrated(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!hydrated.current) return;
+    if (!hydrated) return;
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(state)) {
       params.set(key, typeof value === "boolean" ? (value ? "1" : "0") : String(value));
@@ -67,7 +69,7 @@ export function useScenario<T extends Record<string, Scalar>>(storageKey: string
     } catch {
       /* ignore */
     }
-  }, [state, currency, router, storageKey]);
+  }, [hydrated, state, currency, router, storageKey]);
 
   const patch = useCallback((p: Partial<T>) => setState((s) => ({ ...s, ...p })), []);
 

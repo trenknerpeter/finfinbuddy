@@ -37,6 +37,55 @@ const CS: Record<string, string> = {
   Savings: "Spoření",
   "Plan — investments": "Plán — investice",
   "Plan — savings": "Plán — spoření",
+  // Retirement milestones + home
+  "{n} — mortgage cleared too": "{n} — splacená i hypotéka",
+  "Mortgage left": "Zbývá na hypotéce",
+  "Your number + mortgage left": "Cílová částka + zbytek hypotéky",
+  "You'd still owe {d} on the mortgage at {age}. Keep going until {age2} to clear it.":
+    "V {age} letech byste na hypotéce stále dlužili {d}. Vydržte do {age2} a splatíte i ji.",
+  "You'd still owe {d} on the mortgage at {age}.": "V {age} letech byste na hypotéce stále dlužili {d}.",
+  "Property value (optional)": "Hodnota nemovitosti (nepovinné)",
+  "What your home would sell for today. Counts towards your net worth on the Dashboard — never towards your retirement money.":
+    "Za kolik byste nemovitost dnes prodali. Započítá se do čistého jmění v Přehledu — nikdy do peněz na rentu.",
+  "Include price growth": "Započítat růst cen",
+  "Growth above inflation": "Růst nad inflaci",
+  "On top of inflation — everything here is in today's money. 1% means the home gains 1% a year more than prices in general.":
+    "Nad rámec inflace — vše je v dnešních cenách. 1 % znamená, že nemovitost zdražuje o 1 % ročně rychleji než ceny obecně.",
+  "Your number": "Cílová částka",
+  "Home {h} · Investments {a} · Savings {b} · Mortgage −{d}":
+    "Bydlení {h} · Investice {a} · Spoření {b} · Hypotéka −{d}",
+  "Excluding your home": "Bez nemovitosti",
+  "Add your home's value →": "Doplnit hodnotu nemovitosti →",
+  "Home ownership": "Vlastnictví bydlení",
+  "{p} yours": "{p} vaše",
+  "No mortgage": "Bez hypotéky",
+  "The payment doesn't pay the loan off": "Splátka úvěr nesplatí",
+  "{years} to go": "Zbývá {years}",
+  "At {age}: net worth {v}. Clear the mortgage and the home is fully yours.":
+    "V {age} letech: čisté jmění {v}. Splaťte hypotéku a bydlení je celé vaše.",
+  "At {age}: net worth {v}, enough to clear the mortgage too.":
+    "V {age} letech: čisté jmění {v}, dost i na splacení hypotéky.",
+  "From {a} · debt-free from {b}": "Od {a} · bez dluhů od {b}",
+  "Mortgage-free at {age}": "Bez hypotéky v {age}",
+  "Mortgage-free in {years}": "Bez hypotéky za {years}",
+  "On this path your pot doesn't reach your number before 90.":
+    "Touto cestou cílové částky do 90 let nedosáhnete.",
+  "From {a} you could live on {v} a month, with {d} still owed on the mortgage. Keep going until {b} to clear it.":
+    "Od {a} let byste mohli žít z {v} měsíčně, na hypotéce by ale zbývalo {d}. Vydržte do {b} a splatíte i ji.",
+  "From {a} you could live on {v} a month, with {d} still owed on the mortgage.":
+    "Od {a} let byste mohli žít z {v} měsíčně, na hypotéce by ale zbývalo {d}.",
+  "From {a} you could live on {v} a month.": "Od {a} let byste mohli žít z {v} měsíčně.",
+  "Your pot": "Vaše portfolio",
+  "At {age}: net worth {v}, with {d} still owed on the mortgage.":
+    "V {age} letech: čisté jmění {v}, na hypotéce zbývá {d}.",
+  "At {age}: net worth {v}, home fully yours.": "V {age} letech: čisté jmění {v}, bydlení je celé vaše.",
+  "At {age}: net worth {v}, mortgage paid off.": "V {age} letech: čisté jmění {v}, hypotéka splacena.",
+  "At {age}: net worth {v}.": "V {age} letech: čisté jmění {v}.",
+  "Answer the plan questions to see when you can stop working — and when the mortgage is cleared too.":
+    "Zodpovězte otázky plánu a uvidíte, kdy můžete přestat pracovat — a kdy budete mít splacenou i hypotéku.",
+  "Property value": "Hodnota nemovitosti",
+  "Price growth above inflation": "Růst cen nad inflaci",
+  Off: "Vypnuto",
   "Answer the plan questions →": "Zodpovědět otázky plánu →",
   "Made with FinBuddy · {date}": "Vytvořeno ve FinBuddy · {date}",
   "Term": "Doba splácení",
