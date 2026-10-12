@@ -1,23 +1,39 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { House } from "lucide-react";
-import type { ReactNode } from "react";
+import { ChevronDown, House } from "lucide-react";
+import type { ComponentProps, ReactNode } from "react";
 import { CURRENCIES, isCurrency, useCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { isLangValue, useLang, useT } from "@/lib/i18n";
+
+function HeaderSelect({ className, children, ...props }: ComponentProps<"select">) {
+  return (
+    <span className="relative inline-flex">
+      <select
+        {...props}
+        className={cn(
+          "h-9 appearance-none rounded-md border border-border bg-card pl-3 pr-9 text-sm font-medium text-foreground outline-none focus:border-primary",
+          className,
+        )}
+      >
+        {children}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+    </span>
+  );
+}
 
 function LangSelect() {
   const { lang, setLang } = useLang();
   const { t } = useT();
   return (
-    <select
+    <HeaderSelect
       value={lang}
       onChange={(e) => isLangValue(e.target.value) && setLang(e.target.value)}
       aria-label={t("Language")}
-      className="h-9 rounded-md border border-border bg-card px-2 text-sm font-medium text-foreground outline-none focus:border-primary"
     >
       <option value="en">EN</option>
       <option value="cs">CZ</option>
-    </select>
+    </HeaderSelect>
   );
 }
 
@@ -25,18 +41,17 @@ function CurrencySelect() {
   const { currency, setCurrency } = useCurrency();
   const { t } = useT();
   return (
-    <select
+    <HeaderSelect
       value={currency}
       onChange={(e) => isCurrency(e.target.value) && setCurrency(e.target.value)}
       aria-label={t("Currency")}
-      className="h-9 rounded-md border border-border bg-card px-2 text-sm font-medium text-foreground outline-none focus:border-primary"
     >
       {CURRENCIES.map((c) => (
         <option key={c.code} value={c.code}>
           {c.code} ({c.symbol})
         </option>
       ))}
-    </select>
+    </HeaderSelect>
   );
 }
 
