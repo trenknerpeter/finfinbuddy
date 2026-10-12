@@ -190,6 +190,10 @@ const CS: Record<string, string> = {
   "Extra one-time payment": "Mimořádná jednorázová splátka",
   "Extra payment amount": "Výše mimořádné splátky",
   "Paid in year": "Zaplaceno v roce",
+  "Starting in year": "Od roku",
+  "Repeat every year": "Opakovat každý rok",
+  "A payment of {v} every year from year {y}, keeping the same monthly payment.":
+    "Splátka {v} každý rok od roku {y}, se stejnou měsíční splátkou.",
   "Rate change impact": "Dopad změny sazby",
   "{v} left": "Zbývá {v}",
   " over {years}": " na {years}",

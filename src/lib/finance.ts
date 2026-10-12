@@ -115,7 +115,7 @@ export function buildScenario(
   annualRate: number,
   months: number,
   monthly: number,
-  extra?: { amount: number; month: number },
+  extra?: { amount: number; month: number; yearly?: boolean },
 ): MortgageScenario {
   const P = num(principal);
   const r = num(annualRate) / 100 / 12;
@@ -142,7 +142,9 @@ export function buildScenario(
     yearInterest += interest;
     yearPrincipal += principalPart;
 
-    if (m === extraMonth && extraAmt > 0 && balance > 0) {
+    const isExtraMonth =
+      extraMonth > 0 && (extra?.yearly ? m >= extraMonth && (m - extraMonth) % 12 === 0 : m === extraMonth);
+    if (isExtraMonth && extraAmt > 0 && balance > 0) {
       const e = Math.min(extraAmt, balance);
       balance -= e;
       totalPaid += e;

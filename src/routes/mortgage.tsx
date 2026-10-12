@@ -51,6 +51,7 @@ const DEFAULTS = {
   extraPayment: false,
   extraAmount: 10000,
   extraYear: 3,
+  extraYearly: false,
   homeValue: 0,
   homeGrowth: false,
   homeRate: 1,
@@ -84,9 +85,10 @@ function Mortgage() {
         ? buildScenario(s.principal, s.rate, solved.months, solved.monthly, {
             amount: s.extraAmount,
             month: Math.round(s.extraYear * 12),
+            yearly: s.extraYearly,
           })
         : current,
-    [s.extraPayment, s.principal, s.rate, solved.months, solved.monthly, s.extraAmount, s.extraYear, current],
+    [s.extraPayment, s.principal, s.rate, solved.months, solved.monthly, s.extraAmount, s.extraYear, s.extraYearly, current],
   );
 
   const whatIf = useMemo(() => {
@@ -288,7 +290,7 @@ function Mortgage() {
                   suffixPosition="left"
                 />
                 <NumberSlider
-                  label={t("Paid in year")}
+                  label={s.extraYearly ? t("Starting in year") : t("Paid in year")}
                   value={s.extraYear}
                   onChange={(v) => patch({ extraYear: v })}
                   min={1}
@@ -296,6 +298,17 @@ function Mortgage() {
                   step={1}
                   suffix={t("year")}
                 />
+                <div className="flex min-h-11 items-center justify-between gap-4">
+                  <label htmlFor="extra-yearly" className="text-sm text-muted-foreground">
+                    {t("Repeat every year")}
+                  </label>
+                  <Switch
+                    id="extra-yearly"
+                    checked={s.extraYearly}
+                    onCheckedChange={(checked) => patch({ extraYearly: checked })}
+                    aria-label={t("Repeat every year")}
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -416,7 +429,9 @@ function Mortgage() {
                   </div>
                 </div>
                 <p className="mt-5 text-xs text-muted-foreground">
-                  {t("A one-time payment of {v} in year {y}, keeping the same monthly payment.", { v: money(s.extraAmount), y: Math.round(s.extraYear) })}
+                  {s.extraYearly
+                    ? t("A payment of {v} every year from year {y}, keeping the same monthly payment.", { v: money(s.extraAmount), y: Math.round(s.extraYear) })
+                    : t("A one-time payment of {v} in year {y}, keeping the same monthly payment.", { v: money(s.extraAmount), y: Math.round(s.extraYear) })}
                 </p>
               </Panel>
             )}
