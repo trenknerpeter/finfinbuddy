@@ -15,6 +15,10 @@ export type MortgageInput = {
   years: number;
   payment: number;
   solveTerm: boolean;
+  extraPayment?: boolean;
+  extraAmount?: number;
+  extraYear?: number;
+  extraYearly?: boolean;
 };
 
 export type MortgageSchedule = {
@@ -31,14 +35,21 @@ export function mortgageSchedule(m: MortgageInput): MortgageSchedule {
   const r = num(m.rate) / 100 / 12;
   const payment = m.solveTerm ? num(m.payment) : solvePayment(P, m.rate, m.years);
   const solved = m.solveTerm ? solveMonths(P, m.rate, payment) : Math.max(0, num(m.years)) * 12;
-  const months = solved === null ? null : Math.round(solved);
+  const baseMonths = solved === null ? null : Math.round(solved);
+  const extraAmt = m.extraPayment ? num(m.extraAmount) : 0;
+  const extraMonth = Math.round(num(m.extraYear) * 12);
   const balances = [P];
   // Without amortisation the balance never falls; cap the schedule at 90 years.
-  const limit = months ?? 1080;
+  const limit = baseMonths ?? 1080;
   let balance = P;
+  let months = baseMonths;
   for (let i = 1; i <= limit && balance > 0.5; i++) {
     balance = Math.max(0, balance + balance * r - payment);
+    const isExtra =
+      extraAmt > 0 && extraMonth > 0 && (m.extraYearly ? i >= extraMonth && (i - extraMonth) % 12 === 0 : i === extraMonth);
+    if (isExtra) balance = Math.max(0, balance - extraAmt);
     balances.push(balance);
+    if (balance <= 0.5 && baseMonths !== null) months = i;
   }
   if (months !== null) balances.push(0);
   return { payment, months, balances };

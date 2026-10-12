@@ -28,6 +28,10 @@ export type MortgageScenario = {
   years: number;
   payment: number;
   solveTerm: boolean;
+  extraPayment?: boolean;
+  extraAmount?: number;
+  extraYear?: number;
+  extraYearly?: boolean;
   homeValue: number;
   homeGrowth: boolean;
   homeRate: number;
@@ -76,6 +80,10 @@ export function loadMortgage(): MortgageScenario | null {
     years: num(p.years, 20),
     payment: num(p.payment),
     solveTerm: Boolean(p.solveTerm),
+    extraPayment: Boolean(p.extraPayment),
+    extraAmount: num(p.extraAmount),
+    extraYear: num(p.extraYear, 3),
+    extraYearly: Boolean(p.extraYearly),
     homeValue: num(p.homeValue),
     homeGrowth: Boolean(p.homeGrowth),
     homeRate: num(p.homeRate, 1),
