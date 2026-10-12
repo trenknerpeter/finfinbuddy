@@ -324,6 +324,10 @@ function Dashboard() {
                       className="bg-primary"
                       style={{ width: `${Math.min(100, (m.monthlyInvesting / m.income) * 100)}%` }}
                     />
+                    <div
+                      className="bg-primary/40"
+                      style={{ width: `${Math.min(100, (m.monthlySavings / m.income) * 100)}%` }}
+                    />
                     <div className="flex-1 bg-muted" />
                   </div>
                   <dl className="tnum mt-4 space-y-2 text-sm">
@@ -337,9 +341,16 @@ function Dashboard() {
                     <div className="flex items-center justify-between gap-4">
                       <dt className="flex items-center gap-2 text-muted-foreground">
                         <span className="size-2.5 rounded-sm bg-primary" />
-                        {t("Investing")}
+                        {t("Monthly investing")}
                       </dt>
                       <dd className="font-medium">{money(m.monthlyInvesting)}</dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <dt className="flex items-center gap-2 text-muted-foreground">
+                        <span className="size-2.5 rounded-sm bg-primary/40" />
+                        {t("Monthly savings")}
+                      </dt>
+                      <dd className="font-medium">{money(m.monthlySavings)}</dd>
                     </div>
                     <div className="flex items-center justify-between gap-4">
                       <dt className="flex items-center gap-2 text-muted-foreground">
@@ -415,12 +426,28 @@ function Dashboard() {
                         [t("Age"), String(plan.age)],
                         [t("Target age"), String(plan.stop)],
                         [t("Monthly spending"), money(plan.spend)],
-                        [t("Invested today"), money(plan.invested)],
-                        [t("In savings today"), money(plan.cash)],
-                        [t("Monthly saving"), money(plan.save)],
-                        [t("Annual return"), percent(plan.ret)],
                         [t("Withdrawal rate"), percent(plan.wd)],
                         [t("Inflation"), percent(plan.infl)],
+                      ]
+                    : null,
+                },
+                {
+                  title: t("Plan — investments"),
+                  rows: plan
+                    ? [
+                        [t("Invested today"), money(plan.invested)],
+                        [t("Invested monthly"), money(plan.saveInvest)],
+                        [t("Investment return"), percent(plan.ret)],
+                      ]
+                    : null,
+                },
+                {
+                  title: t("Plan — savings"),
+                  rows: plan
+                    ? [
+                        [t("In savings today"), money(plan.cash)],
+                        [t("Saved monthly"), money(plan.saveCash)],
+                        [t("Savings interest rate"), percent(plan.cashRet)],
                       ]
                     : null,
                 },

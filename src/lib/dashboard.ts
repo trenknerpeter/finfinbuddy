@@ -3,9 +3,11 @@ import {
   DEFAULT_ASSUMPTIONS,
   loadPlan,
   monthsToTarget,
-  potAfterMonths,
-  realMonthlyRate,
+  potsAfterMonths,
+  startPot,
   targetPotFor,
+  type PlanAssumptions,
+  type PlanProfile,
   type SavedPlan,
 } from "./plan";
 
@@ -106,6 +108,7 @@ export type DashboardMetrics = {
   targetAge: number;
   mortgagePayment: number;
   monthlyInvesting: number;
+  monthlySavings: number;
   freeCash: number | null;
   income: number;
   rows: NetWorthRow[];
@@ -124,28 +127,32 @@ export function deriveMetrics(input: {
   const invested = plan ? num(plan.invested) : invest ? num(invest.initial) : 0;
   const cash = plan ? num(plan.cash) : investSavings;
   const assets = invested + cash;
-  const pot = assets;
 
   const mortgageBalance = mortgage ? num(mortgage.principal) : 0;
   const netWorth = assets - mortgageBalance;
 
-  const monthlySaving = plan
-    ? num(plan.save)
-    : invest
-      ? num(invest.monthly) + (invest.savings ? num(invest.sMonthly) : 0)
+  const monthlyInvesting = plan ? num(plan.saveInvest) : invest ? num(invest.monthly) : 0;
+  const monthlySavings = plan
+    ? num(plan.saveCash)
+    : invest?.savings
+      ? num(invest.sMonthly)
       : 0;
+  const monthlySaving = monthlyInvesting + monthlySavings;
   const savingsRate = income > 0 && monthlySaving > 0 ? monthlySaving / income : null;
   const debtToAssets = assets > 0 && mortgageBalance > 0 ? mortgageBalance / assets : null;
 
-  const assumptions = plan
-    ? { ret: num(plan.ret, 7), wd: num(plan.wd, 4), infl: num(plan.infl, 2) }
-    : DEFAULT_ASSUMPTIONS;
+  // Without a plan, project from the Invest tab's own rates.
+  const assumptions: PlanAssumptions = plan
+    ? { ret: plan.ret, cashRet: plan.cashRet, wd: plan.wd, infl: plan.infl }
+    : invest
+      ? { ret: invest.rate, cashRet: invest.sRate, wd: invest.withdrawRate, infl: invest.inflation }
+      : DEFAULT_ASSUMPTIONS;
 
   let readiness: number | null = null;
   let projectedStopAge: number | null = null;
   if (plan) {
     const target = targetPotFor(plan.spend, assumptions.wd);
-    if (isFinite(target) && target > 0) readiness = pot / target;
+    if (isFinite(target) && target > 0) readiness = startPot(plan) / target;
     const months = monthsToTarget(plan, assumptions, target);
     if (months !== null) projectedStopAge = num(plan.age) + months / 12;
   }
@@ -161,12 +168,20 @@ export function deriveMetrics(input: {
   // Net worth projection: savings pot growth (real terms) minus mortgage balance.
   const rows: NetWorthRow[] = [];
   const horizon = Math.min(40, Math.max(plan ? num(plan.stop) - num(plan.age) : 0, mortgage ? Math.ceil(num(mortgage.years)) : 0, 10));
-  const r = realMonthlyRate(assumptions.ret, assumptions.infl);
+  const projection: PlanProfile = {
+    age: 0,
+    stop: 0,
+    spend: 0,
+    invested,
+    cash,
+    saveInvest: monthlyInvesting,
+    saveCash: monthlySavings,
+  };
   const balanceByYear = mortgage
     ? buildScenario(mortgage.principal, mortgage.rate, mortgage.years * 12, mortgagePayment).balanceByYear
     : [];
   for (let y = 0; y <= horizon; y++) {
-    const a = potAfterMonths(assets, monthlySaving, r, y * 12);
+    const a = potsAfterMonths(projection, assumptions, y * 12).total;
     const d = balanceByYear[Math.min(y, balanceByYear.length - 1)] ?? 0;
     rows.push({ year: y, assets: a, debt: d, netWorth: a - d });
   }
@@ -184,7 +199,8 @@ export function deriveMetrics(input: {
     projectedStopAge,
     targetAge: plan ? num(plan.stop) : 0,
     mortgagePayment,
-    monthlyInvesting: monthlySaving,
+    monthlyInvesting,
+    monthlySavings,
     freeCash,
     income,
     rows,

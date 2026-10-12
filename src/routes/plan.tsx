@@ -10,14 +10,17 @@ import {
   DEFAULT_ASSUMPTIONS,
   affordableSpend,
   loadPlan,
+  monthlyTotal,
   monthsToTarget,
+  normalisePlan,
   planRows,
+  potAtStop as projectPotAtStop,
   requiredMonthly,
   requiredReturn,
   savePlan,
+  startPot,
   targetPotFor,
-  potAfterMonths,
-  realMonthlyRate,
+  withMonthlyTotal,
   type PlanAssumptions,
   type PlanProfile,
   type SavedPlan,
@@ -32,7 +35,7 @@ export const Route = createFileRoute("/plan")({
       {
         name: "description",
         content:
-          "Answer five quick questions and see when you can realistically stop working — and what would have to change if you're behind.",
+          "Answer seven quick questions and see when you can realistically stop working — and what would have to change if you're behind.",
       },
       { property: "og:title", content: "Plan — FinBuddy" },
       {
@@ -48,8 +51,9 @@ export const Route = createFileRoute("/plan")({
 
 /* ------------------------------ Questionnaire ----------------------------- */
 
-type Answers = Omit<PlanProfile, "pot"> & { invested: number; cash: number };
-type QuestionKey = keyof Answers;
+type Answers = PlanProfile & Pick<PlanAssumptions, "ret" | "cashRet">;
+type QuestionKey = keyof PlanProfile;
+type RateKey = "ret" | "cashRet";
 
 const QUESTIONS: {
   key: QuestionKey;
@@ -60,6 +64,8 @@ const QUESTIONS: {
   min: number;
   max: number;
   money?: boolean;
+  /** A rate slider paired directly under the amount. */
+  rate?: { key: RateKey; label: string; min: number; max: number; step: number; note: string };
 }[] = [
   {
     key: "age",
@@ -110,14 +116,40 @@ const QUESTIONS: {
     money: true,
   },
   {
-    key: "save",
-    title: "How much do you put aside each month?",
-    helper: "Whatever you're actually managing right now, not the aspiration.",
-    detail: "Include regular investing and pension contributions that will continue until your target age.",
+    key: "saveInvest",
+    title: "How much do you invest each month?",
+    helper: "Regular contributions to funds, ETFs or a pension — whatever you're actually managing now.",
+    detail: "Only count what will continue until your target age.",
     def: 500,
     min: 0,
     max: 1000000,
     money: true,
+    rate: {
+      key: "ret",
+      label: "Expected annual return",
+      min: 1,
+      max: 15,
+      step: 0.5,
+      note: "Global index funds have historically returned around 7–8% a year before inflation.",
+    },
+  },
+  {
+    key: "saveCash",
+    title: "How much do you put into savings accounts each month?",
+    helper: "Money that goes into a savings account or term deposit rather than the market.",
+    detail: "Leave out what stays in your everyday current account.",
+    def: 200,
+    min: 0,
+    max: 1000000,
+    money: true,
+    rate: {
+      key: "cashRet",
+      label: "Expected interest rate",
+      min: 0,
+      max: 10,
+      step: 0.1,
+      note: "Savings accounts usually pay close to the central bank rate — often around 2–4%.",
+    },
   },
 ];
 
@@ -130,13 +162,19 @@ function Questionnaire({
 }) {
   const navigate = useNavigate();
   const { symbol } = useFormatters();
+  const scale = useCurrencyScale();
   const { t } = useT();
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Answers>(
-    initial
-      ? { age: initial.age, stop: initial.stop, spend: initial.spend, invested: initial.invested, cash: initial.cash, save: initial.save }
-      : { age: 35, stop: 60, spend: 2500, invested: 20000, cash: 5000, save: 500 },
-  );
+  const [answers, setAnswers] = useState<Answers>(() => {
+    if (initial) {
+      const { wd: _wd, infl: _infl, ...rest } = initial;
+      return rest;
+    }
+    const a = Object.fromEntries(
+      QUESTIONS.map((q) => [q.key, q.money ? q.def * scale : q.def]),
+    ) as PlanProfile;
+    return { ...a, ret: DEFAULT_ASSUMPTIONS.ret, cashRet: DEFAULT_ASSUMPTIONS.cashRet };
+  });
   const [text, setText] = useState(String(initial?.age ?? QUESTIONS[0]!.def));
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -232,6 +270,21 @@ function Questionnaire({
         <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{t(q.detail)}</p>
         {error && <p className="mt-3 text-sm text-muted-foreground">{error}</p>}
 
+        {q.rate && (
+          <div className="mt-8 rounded-lg border border-border p-5">
+            <NumberSlider
+              label={t(q.rate.label)}
+              value={answers[q.rate.key]}
+              onChange={(v) => setAnswers((a) => ({ ...a, [q.rate!.key]: Math.min(v, q.rate!.max) }))}
+              min={q.rate.min}
+              max={q.rate.max}
+              step={q.rate.step}
+              suffix="%"
+            />
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{t(q.rate.note)}</p>
+          </div>
+        )}
+
         <button
           type="submit"
           className="mt-10 inline-flex h-11 items-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
@@ -280,7 +333,7 @@ function LeverCard({
   step: number;
   suffix?: string;
   suffixPosition?: "left" | "right";
-  caption?: string;
+  caption?: string | undefined;
 }) {
   const { t } = useT();
   const atSolve = solved !== null && Math.abs(value - solved) <= step / 2;
@@ -342,17 +395,28 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
 
   const [assumptions, setAssumptions] = useState<PlanAssumptions>({
     ret: plan.ret,
+    cashRet: plan.cashRet,
     wd: plan.wd,
     infl: plan.infl,
   });
+  const planSave = monthlyTotal(plan);
   const [levers, setLevers] = useState<Levers>({
-    save: plan.save,
+    save: planSave,
     stop: plan.stop,
     spend: plan.spend,
     ret: plan.ret,
   });
 
-  const profile: PlanProfile = { age: plan.age, stop: plan.stop, spend: plan.spend, pot: plan.pot, save: plan.save };
+  const profile: PlanProfile = {
+    age: plan.age,
+    stop: plan.stop,
+    spend: plan.spend,
+    invested: plan.invested,
+    cash: plan.cash,
+    saveInvest: plan.saveInvest,
+    saveCash: plan.saveCash,
+  };
+  const pot = startPot(plan);
 
   // Mirror to URL + localStorage (levers are never persisted).
   useEffect(() => {
@@ -362,8 +426,10 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
       spend: String(plan.spend),
       invested: String(plan.invested),
       cash: String(plan.cash),
-      save: String(plan.save),
+      saveInvest: String(plan.saveInvest),
+      saveCash: String(plan.saveCash),
       ret: String(assumptions.ret),
+      cashRet: String(assumptions.cashRet),
       wd: String(assumptions.wd),
       infl: String(assumptions.infl),
     });
@@ -373,29 +439,26 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
     }
     savePlan({ ...plan, ...profile, ...assumptions });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [plan.age, plan.stop, plan.spend, plan.invested, plan.cash, plan.save, assumptions]);
+  }, [plan.age, plan.stop, plan.spend, plan.invested, plan.cash, plan.saveInvest, plan.saveCash, assumptions]);
 
   // Effective (lever-adjusted) scenario drives the hero and the chart.
-  const effProfile: PlanProfile = {
-    age: plan.age,
-    stop: levers.stop,
-    spend: levers.spend,
-    pot: plan.pot,
-    save: levers.save,
-  };
+  // The "save more" lever moves the total; the extra goes into investments.
+  const effProfile: PlanProfile = withMonthlyTotal(
+    { ...profile, stop: levers.stop, spend: levers.spend },
+    levers.save,
+  );
   const effAssumptions: PlanAssumptions = { ...assumptions, ret: levers.ret };
 
   const target = targetPotFor(levers.spend, assumptions.wd);
   const months = monthsToTarget(effProfile, effAssumptions, target);
   const reachedAge = months === null ? null : months === 0 ? plan.age : Math.round(plan.age + months / 12);
-  const r = realMonthlyRate(levers.ret, assumptions.infl);
-  const potAtStop = potAfterMonths(plan.pot, levers.save, r, Math.max(0, (levers.stop - plan.age) * 12));
+  const potAtStop = projectPotAtStop(effProfile, effAssumptions);
   const gap = isFinite(target) ? target - potAtStop : Infinity;
 
   const rows = useMemo(
     () => planRows(effProfile, effAssumptions, reachedAge !== null && reachedAge > plan.age ? reachedAge : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [plan.age, plan.pot, levers.save, levers.stop, levers.spend, levers.ret, assumptions, reachedAge],
+    [plan.age, plan.invested, plan.cash, plan.saveInvest, plan.saveCash, levers.save, levers.stop, levers.spend, levers.ret, assumptions, reachedAge],
   );
 
   // Solve points are computed from the saved plan, not the dragged levers.
@@ -407,7 +470,7 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
   const solveSpend = baseMonths === 0 || solveSpendRaw < plan.spend ? solveSpendRaw : null;
   const solveRet = requiredReturn(profile, assumptions, baseTarget);
 
-  const alreadyFunded = isFinite(target) && plan.pot >= target;
+  const alreadyFunded = isFinite(target) && pot >= target;
   const early = !alreadyFunded && reachedAge !== null && reachedAge < levers.stop;
   const onTrack = !alreadyFunded && reachedAge !== null && reachedAge === levers.stop;
   const unreachable = !alreadyFunded && reachedAge === null;
@@ -415,7 +478,7 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
   const surplusAtStop = early ? potAtStop - target : 0;
 
   const leversDirty =
-    levers.save !== plan.save ||
+    levers.save !== planSave ||
     levers.stop !== plan.stop ||
     levers.spend !== plan.spend ||
     levers.ret !== assumptions.ret;
@@ -507,10 +570,17 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
               {money(potAtStop)}
             </p>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              {t("{v} a month at {p}, in today's money", {
-                v: money(levers.save),
-                p: percent(levers.ret),
-              })}
+              {effProfile.saveCash > 0 || plan.cash > 0
+                ? t("{a} a month invested at {p} + {b} saved at {q}, in today's money", {
+                    a: money(effProfile.saveInvest),
+                    p: percent(levers.ret),
+                    b: money(effProfile.saveCash),
+                    q: percent(assumptions.cashRet),
+                  })
+                : t("{v} a month at {p}, in today's money", {
+                    v: money(levers.save),
+                    p: percent(levers.ret),
+                  })}
             </p>
           </div>
           <div className="min-w-0">
@@ -544,7 +614,7 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
             <button
               type="button"
               onClick={() =>
-                setLevers({ save: plan.save, stop: plan.stop, spend: plan.spend, ret: assumptions.ret })
+                setLevers({ save: planSave, stop: plan.stop, spend: plan.spend, ret: assumptions.ret })
               }
               className="text-sm text-muted-foreground underline-offset-4 hover:underline"
             >
@@ -555,9 +625,10 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
         <div className="grid gap-4 sm:grid-cols-2">
           <LeverCard
             title={t("Save more each month")}
-            now={money(plan.save)}
+            now={money(planSave)}
             solved={solveSave}
             solvedLabel={solveSave !== null ? money(solveSave) : "—"}
+            caption={plan.saveCash > 0 ? t("Anything extra goes into your investments.") : undefined}
             value={levers.save}
             onChange={(v) => setLevers((l) => ({ ...l, save: v }))}
             min={0}
@@ -602,7 +673,7 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
             max={15}
             step={0.1}
             suffix="%"
-            caption={t("The one lever you don't control.")}
+            caption={t("Moves your investment return. The one lever you don't control.")}
           />
         </div>
       </div>
@@ -615,9 +686,9 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
             </AccordionTrigger>
             <AccordionContent>
               <p className="mb-6 text-sm text-muted-foreground">{t("All figures are in today's money.")}</p>
-              <div className="grid gap-6 sm:grid-cols-3">
+              <div className="grid gap-6 sm:grid-cols-2">
                 <NumberSlider
-                  label={t("Expected annual return")}
+                  label={t("Investment return")}
                   value={assumptions.ret}
                   onChange={(v) => {
                     setAssumptions((a) => ({ ...a, ret: v }));
@@ -625,6 +696,15 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
                   }}
                   min={0}
                   max={15}
+                  step={0.1}
+                  suffix="%"
+                />
+                <NumberSlider
+                  label={t("Savings interest rate")}
+                  value={assumptions.cashRet}
+                  onChange={(v) => setAssumptions((a) => ({ ...a, cashRet: v }))}
+                  min={0}
+                  max={10}
                   step={0.1}
                   suffix="%"
                 />
@@ -681,15 +761,23 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
               <dd>{money(plan.cash)}</dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">{t("Monthly saving")}</dt>
-              <dd>{money(levers.save)}</dd>
+              <dt className="text-muted-foreground">{t("Invested monthly")}</dt>
+              <dd>{money(effProfile.saveInvest)}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">{t("Saved monthly")}</dt>
+              <dd>{money(effProfile.saveCash)}</dd>
             </div>
           </dl>
           <p className="mt-5 text-sm font-semibold tracking-tight">{t("Assumptions")}</p>
           <dl className="tnum mt-3 grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
             <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">{t("Annual return")}</dt>
+              <dt className="text-muted-foreground">{t("Investment return")}</dt>
               <dd>{percent(levers.ret)}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted-foreground">{t("Savings interest rate")}</dt>
+              <dd>{percent(assumptions.cashRet)}</dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-muted-foreground">{t("Withdrawal rate")}</dt>
@@ -728,24 +816,12 @@ function PlanPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.has("age") && params.has("stop")) {
-      const n = (k: string, d: number) => {
-        const v = parseFloat(params.get(k) ?? "");
-        return isFinite(v) ? v : d;
-      };
-      const invested = params.has("invested") ? n("invested", 0) : n("pot", 25000);
-      const cash = n("cash", 0);
-      setPlan({
-        age: n("age", 35),
-        stop: n("stop", 60),
-        spend: n("spend", 2500),
-        pot: invested + cash,
-        invested,
-        cash,
-        save: n("save", 500),
-        ret: n("ret", DEFAULT_ASSUMPTIONS.ret),
-        wd: n("wd", DEFAULT_ASSUMPTIONS.wd),
-        infl: n("infl", DEFAULT_ASSUMPTIONS.infl),
+      const raw: Record<string, number> = {};
+      params.forEach((v, k) => {
+        const n = parseFloat(v);
+        if (isFinite(n)) raw[k] = n;
       });
+      setPlan(normalisePlan(raw));
     } else {
       setPlan(loadPlan());
     }
@@ -759,10 +835,8 @@ function PlanPage() {
       <Questionnaire
         initial={plan}
         onDone={(p) => {
-          const assumptions: PlanAssumptions = plan
-            ? { ret: plan.ret, wd: plan.wd, infl: plan.infl }
-            : DEFAULT_ASSUMPTIONS;
-          setPlan({ ...p, pot: p.invested + p.cash, ...assumptions });
+          const { wd, infl } = plan ?? DEFAULT_ASSUMPTIONS;
+          setPlan({ ...p, wd, infl });
           setEditing(false);
         }}
       />

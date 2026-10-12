@@ -1,25 +1,57 @@
 import { num } from "./finance";
 
+/** Two pots: investments (`invested` + `saveInvest`) and savings (`cash` + `saveCash`). */
 export type PlanProfile = {
   age: number;
   stop: number;
   spend: number;
-  pot: number;
-  save: number;
+  invested: number;
+  cash: number;
+  saveInvest: number;
+  saveCash: number;
 };
 
+/** `ret` is the investment return, `cashRet` the savings interest rate. */
 export type PlanAssumptions = {
   ret: number;
+  cashRet: number;
   wd: number;
   infl: number;
 };
 
-/** `pot` is always invested + cash; the split is kept so the Dashboard can show it. */
-export type SavedPlan = PlanProfile & PlanAssumptions & { invested: number; cash: number };
+export type SavedPlan = PlanProfile & PlanAssumptions;
 
 export const PLAN_KEY = "finbuddy.profile.v1";
 
-export const DEFAULT_ASSUMPTIONS: PlanAssumptions = { ret: 7, wd: 4, infl: 2 };
+export const DEFAULT_ASSUMPTIONS: PlanAssumptions = { ret: 8, cashRet: 3, wd: 4, infl: 2 };
+
+export const startPot = (p: Pick<PlanProfile, "invested" | "cash">) => num(p.invested) + num(p.cash);
+export const monthlyTotal = (p: Pick<PlanProfile, "saveInvest" | "saveCash">) =>
+  num(p.saveInvest) + num(p.saveCash);
+
+/**
+ * Normalises a stored or URL-supplied plan. Older plans had a single `pot`/`save`
+ * growing at one rate: that money is treated as invested.
+ */
+export function normalisePlan(p: Partial<SavedPlan> & { pot?: number; save?: number }): SavedPlan {
+  const invested = typeof p.invested === "number" ? num(p.invested) : num(p.pot, 25000);
+  const cash = typeof p.cash === "number" ? num(p.cash) : 0;
+  const saveInvest = typeof p.saveInvest === "number" ? num(p.saveInvest) : num(p.save, 500);
+  const saveCash = typeof p.saveCash === "number" ? num(p.saveCash) : 0;
+  return {
+    age: num(p.age, 35),
+    stop: num(p.stop, 60),
+    spend: num(p.spend, 2500),
+    invested,
+    cash,
+    saveInvest,
+    saveCash,
+    ret: num(p.ret, DEFAULT_ASSUMPTIONS.ret),
+    cashRet: num(p.cashRet, DEFAULT_ASSUMPTIONS.cashRet),
+    wd: num(p.wd, DEFAULT_ASSUMPTIONS.wd),
+    infl: num(p.infl, DEFAULT_ASSUMPTIONS.infl),
+  };
+}
 
 export function loadPlan(): SavedPlan | null {
   try {
@@ -27,21 +59,7 @@ export function loadPlan(): SavedPlan | null {
     if (!raw) return null;
     const p = JSON.parse(raw) as Partial<SavedPlan>;
     if (typeof p.age !== "number" || typeof p.stop !== "number") return null;
-    const pot = num(p.pot, 25000);
-    const invested = typeof p.invested === "number" ? num(p.invested) : pot;
-    const cash = typeof p.cash === "number" ? num(p.cash) : 0;
-    return {
-      age: num(p.age, 35),
-      stop: num(p.stop, 60),
-      spend: num(p.spend, 2500),
-      pot: invested + cash,
-      invested,
-      cash,
-      save: num(p.save, 500),
-      ret: num(p.ret, 7),
-      wd: num(p.wd, 4),
-      infl: num(p.infl, 2),
-    };
+    return normalisePlan(p);
   } catch {
     return null;
   }
@@ -77,60 +95,64 @@ export function potAfterMonths(P0: number, PMT: number, r: number, n: number): n
   return num(P0) * g + (num(PMT) * (g - 1)) / r;
 }
 
-/** First month from now where the pot reaches the target, searching to age 90. null if never. */
+export type PotSplit = { invest: number; savings: number; total: number };
+
+/** Both pots after n months, each compounding at its own real rate. */
+export function potsAfterMonths(
+  profile: PlanProfile,
+  assumptions: PlanAssumptions,
+  n: number,
+): PotSplit {
+  const invest = potAfterMonths(
+    profile.invested,
+    profile.saveInvest,
+    realMonthlyRate(assumptions.ret, assumptions.infl),
+    n,
+  );
+  const savings = potAfterMonths(
+    profile.cash,
+    profile.saveCash,
+    realMonthlyRate(assumptions.cashRet, assumptions.infl),
+    n,
+  );
+  return { invest, savings, total: invest + savings };
+}
+
+const monthsToStop = (profile: PlanProfile) =>
+  Math.max(0, Math.round((num(profile.stop) - num(profile.age)) * 12));
+
+/** Combined pot at the stop age. */
+export function potAtStop(profile: PlanProfile, assumptions: PlanAssumptions): number {
+  return potsAfterMonths(profile, assumptions, monthsToStop(profile)).total;
+}
+
+/**
+ * Applies a total monthly amount to the two pots: the savings contribution is kept
+ * as answered (capped at the total) and the rest goes into investments.
+ */
+export function withMonthlyTotal(profile: PlanProfile, total: number): PlanProfile {
+  const t = Math.max(0, num(total));
+  const saveCash = Math.min(num(profile.saveCash), t);
+  return { ...profile, saveCash, saveInvest: t - saveCash };
+}
+
+/** First month from now where the combined pot reaches the target, searching to age 90. null if never. */
 export function monthsToTarget(
   profile: PlanProfile,
   assumptions: PlanAssumptions,
   target: number,
 ): number | null {
   if (!isFinite(target)) return null;
-  if (num(profile.pot) >= target) return 0;
-  const r = realMonthlyRate(assumptions.ret, assumptions.infl);
+  if (startPot(profile) >= target) return 0;
   const maxMonths = Math.max(0, Math.round((90 - num(profile.age)) * 12));
   for (let m = 1; m <= maxMonths; m++) {
-    if (potAfterMonths(profile.pot, profile.save, r, m) >= target) return m;
+    if (potsAfterMonths(profile, assumptions, m).total >= target) return m;
   }
   return null;
 }
 
-/** Monthly saving needed to hit the target exactly at the stop age. null if no time left. */
-export function requiredMonthly(
-  profile: PlanProfile,
-  assumptions: PlanAssumptions,
-  target: number,
-): number | null {
-  const n = Math.max(0, Math.round((num(profile.stop) - num(profile.age)) * 12));
-  if (n === 0 || !isFinite(target)) return null;
-  const r = realMonthlyRate(assumptions.ret, assumptions.infl);
-  if (r === 0) return Math.max(0, (target - num(profile.pot)) / n);
-  const g = Math.pow(1 + r, n);
-  return Math.max(0, ((target - num(profile.pot) * g) * r) / (g - 1));
-}
-
-/** Monthly spending the projected pot at the stop age would actually fund. */
-export function affordableSpend(
-  profile: PlanProfile,
-  assumptions: PlanAssumptions,
-): number {
-  const n = Math.max(0, Math.round((num(profile.stop) - num(profile.age)) * 12));
-  const r = realMonthlyRate(assumptions.ret, assumptions.infl);
-  const pot = potAfterMonths(profile.pot, profile.save, r, n);
-  return (pot * (num(assumptions.wd) / 100)) / 12;
-}
-
-/** Nominal annual return needed to hit the target at the stop age. null if it exceeds 15%. */
-export function requiredReturn(
-  profile: PlanProfile,
-  assumptions: PlanAssumptions,
-  target: number,
-): number | null {
-  const n = Math.max(0, Math.round((num(profile.stop) - num(profile.age)) * 12));
-  if (n === 0 || !isFinite(target)) return null;
-  const f = (nominal: number) =>
-    potAfterMonths(profile.pot, profile.save, realMonthlyRate(nominal, assumptions.infl), n);
-  if (f(15) < target) return null;
-  let lo = 0;
-  let hi = 30;
+/** Bisection for the smallest x in [lo, hi] where f(x) >= target; assumes f is increasing. */
+function solveIncreasing(f: (x: number) => number, target: number, lo: number, hi: number): number {
   for (let i = 0; i < 60; i++) {
     const mid = (lo + hi) / 2;
     if (f(mid) >= target) hi = mid;
@@ -139,11 +161,47 @@ export function requiredReturn(
   return hi;
 }
 
+/**
+ * Total monthly saving (both pots) needed to hit the target exactly at the stop age.
+ * Any extra goes into investments. null if no time left.
+ */
+export function requiredMonthly(
+  profile: PlanProfile,
+  assumptions: PlanAssumptions,
+  target: number,
+): number | null {
+  if (monthsToStop(profile) === 0 || !isFinite(target)) return null;
+  const f = (total: number) => potAtStop(withMonthlyTotal(profile, total), assumptions);
+  if (f(0) >= target) return 0;
+  let hi = Math.max(1000, monthlyTotal(profile) * 2);
+  while (f(hi) < target && hi < 1e12) hi *= 2;
+  return solveIncreasing(f, target, 0, hi);
+}
+
+/** Monthly spending the projected pot at the stop age would actually fund. */
+export function affordableSpend(profile: PlanProfile, assumptions: PlanAssumptions): number {
+  return (potAtStop(profile, assumptions) * (num(assumptions.wd) / 100)) / 12;
+}
+
+/** Nominal investment return needed to hit the target at the stop age. null if it exceeds 15%. */
+export function requiredReturn(
+  profile: PlanProfile,
+  assumptions: PlanAssumptions,
+  target: number,
+): number | null {
+  if (monthsToStop(profile) === 0 || !isFinite(target)) return null;
+  const f = (ret: number) => potAtStop(profile, { ...assumptions, ret });
+  if (f(15) < target) return null;
+  return solveIncreasing(f, target, 0, 30);
+}
+
 export type PlanYearRow = {
   age: number;
   contributed: number;
   growth: number;
   balance: number;
+  invest: number;
+  savings: number;
 };
 
 /** Yearly projection rows from the current age to a few years past the later of stop/reached. */
@@ -152,20 +210,21 @@ export function planRows(
   assumptions: PlanAssumptions,
   reachedAge: number | null,
 ): PlanYearRow[] {
-  const r = realMonthlyRate(assumptions.ret, assumptions.infl);
   const start = Math.round(num(profile.age));
   const later = Math.max(Math.round(num(profile.stop)), reachedAge ?? 0);
   const end = Math.min(90, later + 3);
   const rows: PlanYearRow[] = [];
   for (let age = start; age <= end; age++) {
     const months = (age - start) * 12;
-    const balance = potAfterMonths(profile.pot, profile.save, r, months);
-    const contributed = num(profile.pot) + num(profile.save) * months;
+    const pots = potsAfterMonths(profile, assumptions, months);
+    const contributed = startPot(profile) + monthlyTotal(profile) * months;
     rows.push({
       age,
       contributed,
-      growth: Math.max(0, balance - contributed),
-      balance,
+      growth: Math.max(0, pots.total - contributed),
+      balance: pots.total,
+      invest: pots.invest,
+      savings: pots.savings,
     });
   }
   return rows;

@@ -63,6 +63,18 @@ export function PlanChart({ rows, target, stopAge, reachedAge }: Props) {
                       <dt className="text-muted-foreground">{t("Pot")}</dt>
                       <dd className="font-medium">{money(p.balance)}</dd>
                     </div>
+                    {p.savings > 0 && (
+                      <>
+                        <div className="flex justify-between gap-6 pl-3">
+                          <dt className="text-muted-foreground">{t("Investments")}</dt>
+                          <dd>{money(p.invest)}</dd>
+                        </div>
+                        <div className="flex justify-between gap-6 pl-3">
+                          <dt className="text-muted-foreground">{t("Savings")}</dt>
+                          <dd>{money(p.savings)}</dd>
+                        </div>
+                      </>
+                    )}
                     <div className="flex justify-between gap-6">
                       <dt className="text-muted-foreground">{t("Put in")}</dt>
                       <dd>{money(p.contributed)}</dd>

@@ -7,6 +7,36 @@ const STORAGE_KEY = "finbuddy.lang";
 
 /** English source text (with {placeholders}) → Czech. Missing keys fall back to English. */
 const CS: Record<string, string> = {
+  // Two-pot plan
+  "How much do you invest each month?": "Kolik měsíčně investujete?",
+  "Regular contributions to funds, ETFs or a pension — whatever you're actually managing now.":
+    "Pravidelné příspěvky do fondů, ETF nebo na penzi — kolik skutečně zvládáte teď.",
+  "Only count what will continue until your target age.":
+    "Počítejte jen s tím, co bude pokračovat až do cílového věku.",
+  "Global index funds have historically returned around 7–8% a year before inflation.":
+    "Globální indexové fondy historicky vynášely zhruba 7–8 % ročně před inflací.",
+  "How much do you put into savings accounts each month?": "Kolik měsíčně dáváte na spořicí účet?",
+  "Money that goes into a savings account or term deposit rather than the market.":
+    "Peníze, které posíláte na spořicí účet nebo termínovaný vklad, ne na trh.",
+  "Leave out what stays in your everyday current account.":
+    "Nezapočítávejte, co zůstává na běžném účtu.",
+  "Expected interest rate": "Očekávaná úroková sazba",
+  "Savings accounts usually pay close to the central bank rate — often around 2–4%.":
+    "Spořicí účty obvykle úročí blízko sazby centrální banky — často kolem 2–4 %.",
+  "{a} a month invested at {p} + {b} saved at {q}, in today's money":
+    "{a} měsíčně investováno při {p} + {b} spořeno při {q}, v dnešních cenách",
+  "Moves your investment return. The one lever you don't control.":
+    "Mění výnos investic. Jediná páka, kterou nemáte pod kontrolou.",
+  "Anything extra goes into your investments.": "Navýšení jde do investic.",
+  "Investment return": "Výnos investic",
+  "Savings interest rate": "Úrok ze spoření",
+  "Invested monthly": "Měsíčně investováno",
+  "Saved monthly": "Měsíčně spořeno",
+  "Monthly investing": "Měsíční investice",
+  "Monthly savings": "Měsíční spoření",
+  Savings: "Spoření",
+  "Plan — investments": "Plán — investice",
+  "Plan — savings": "Plán — spoření",
   "Answer the plan questions →": "Zodpovědět otázky plánu →",
   "Made with FinBuddy · {date}": "Vytvořeno ve FinBuddy · {date}",
   "Term": "Doba splácení",
