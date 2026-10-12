@@ -46,6 +46,31 @@ const DEFAULTS = {
   sRate: 3,
 };
 
+// Big figures shrink to fit the width of their own box (not the viewport), so
+// long amounts like "26 041 611 Kč" never spill out of a narrow column.
+function FitNumber({
+  value,
+  max,
+  className = "",
+}: {
+  value: string;
+  max: string;
+  className?: string;
+}) {
+  // ~0.62em per character for semibold tabular figures, with a little slack.
+  const em = Math.max(value.length, 6) * 0.62;
+  return (
+    <div className="@container min-w-0">
+      <p
+        className={`tnum whitespace-nowrap font-semibold leading-tight tracking-tight ${className}`}
+        style={{ fontSize: `min(${max}, calc(100cqi / ${em.toFixed(2)}))` }}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
 function Kpi({
   label,
   value,
@@ -59,28 +84,14 @@ function Kpi({
   accent?: boolean;
   headline?: boolean;
 }) {
-  const long = value.length > 13;
-  const veryLong = value.length > 16;
-  const size = headline
-    ? veryLong
-      ? "text-[clamp(1.125rem,1.6vw,1.625rem)]"
-      : long
-        ? "text-[clamp(1.25rem,1.85vw,2rem)]"
-        : "text-[clamp(1.5rem,2.1vw,2.25rem)]"
-    : long
-      ? "text-[clamp(0.9375rem,1.05vw,1.0625rem)]"
-      : "text-[clamp(1rem,1.25vw,1.25rem)]";
-
   return (
     <div className="min-w-0">
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p
-        className={`tnum mt-1.5 overflow-hidden whitespace-nowrap font-semibold leading-tight tracking-tight ${size} ${
-          accent ? "text-primary" : "text-foreground"
-        }`}
-      >
-        {value}
-      </p>
+      <FitNumber
+        value={value}
+        max={headline ? "2.25rem" : "1.375rem"}
+        className={`mt-1.5 ${accent ? "text-primary" : "text-foreground"}`}
+      />
       {caption && <p className="mt-1 text-xs text-muted-foreground">{caption}</p>}
     </div>
   );
@@ -309,7 +320,7 @@ function Invest() {
                 )}
               </div>
               {s.savings && (
-                <div className="tnum mt-6 grid gap-2 border-t border-border pt-4 text-sm sm:grid-cols-2">
+                <div className="tnum mt-6 grid gap-x-12 gap-y-2 border-t border-border pt-4 text-sm sm:grid-cols-2">
                   <p className="flex justify-between gap-4">
                     <span className="text-muted-foreground">{t("Investments")}</span>
                     <span className="font-medium">{money(investResult.finalValue)}</span>
@@ -344,9 +355,7 @@ function Invest() {
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
                       {t("Invested amount")}
                     </p>
-                    <p className="tnum mt-1.5 whitespace-nowrap text-[clamp(1.125rem,1.6vw,1.5rem)] font-semibold leading-tight">
-                      {money(result.finalValue)}
-                    </p>
+                    <FitNumber value={money(result.finalValue)} max="1.75rem" className="mt-1.5" />
                   </div>
                   <NumberSlider
                     label={t("Withdrawal rate")}
@@ -376,14 +385,12 @@ function Invest() {
                   </div>
                 </div>
 
-                <div className="grid gap-5 sm:grid-cols-2">
+                <div className="grid content-start gap-5 [grid-template-columns:repeat(auto-fit,minmax(15rem,1fr))]">
                   <div className="min-w-0 rounded-lg border border-border p-5">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
                       {t("Per month")}
                     </p>
-                    <p className="tnum mt-1.5 whitespace-nowrap text-[clamp(1.375rem,1.9vw,2rem)] font-semibold leading-tight text-primary">
-                      {money(monthlyIncome)}
-                    </p>
+                    <FitNumber value={money(monthlyIncome)} max="2rem" className="mt-1.5 text-primary" />
                     <p className="mt-1.5 text-xs text-muted-foreground">
                       {t("{p} a year, split over 12 months", { p: percent(s.withdrawRate) })}
                     </p>
@@ -397,9 +404,7 @@ function Invest() {
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
                       {t("Per year")}
                     </p>
-                    <p className="tnum mt-1.5 whitespace-nowrap text-[clamp(1.125rem,1.6vw,1.625rem)] font-semibold leading-tight">
-                      {money(yearlyIncome)}
-                    </p>
+                    <FitNumber value={money(yearlyIncome)} max="1.75rem" className="mt-1.5" />
                     <p className="mt-1.5 text-xs text-muted-foreground">
                       {t("{v} stays invested", { v: money(result.finalValue) })}
                     </p>
