@@ -4,6 +4,19 @@ Three quick calculators that add up to one picture of your finances: **invest**,
 
 **Live app**: https://finfinbuddy.lovable.app
 
+<p align="center">
+  <img src="docs/screenshots/home.png" alt="FinBuddy home page" width="100%">
+</p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/invest.png" alt="Invest tab: projection with sample data"></td>
+    <td width="50%"><img src="docs/screenshots/dashboard.png" alt="Dashboard: net worth, savings rate and retirement path with sample data"></td>
+  </tr>
+</table>
+
+*Screenshots use sample data.*
+
 ## What it does
 
 | Tab | Question it answers |
