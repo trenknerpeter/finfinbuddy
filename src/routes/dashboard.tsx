@@ -71,7 +71,7 @@ function Kpi({
         ? "text-[clamp(1.2rem,2vw,1.7rem)]"
         : "text-[clamp(1.4rem,2.4vw,2rem)]";
   return (
-    <div className="rounded-lg border border-border bg-card p-5">
+    <div className="rounded-lg border border-border bg-card p-5 print:p-3">
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
       <p
         className={cn(
@@ -283,7 +283,7 @@ function Dashboard() {
         : t("Mortgage-free in {years}", { years: count(Math.ceil(m.mortgageMonths / 12), "year") });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 print:space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">{t("Dashboard")}</h1>
@@ -329,7 +329,7 @@ function Dashboard() {
           {/* Where you stand */}
           <section>
             <h2 className="mb-3 text-sm font-semibold tracking-tight">{t("Where you stand")}</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 print:grid-cols-4 print:gap-2">
               <Kpi
                 label={t("Net worth")}
                 value={money(m.netWorth)}
@@ -403,7 +403,7 @@ function Dashboard() {
             </div>
           </section>
 
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-6 lg:grid-cols-2 print:grid-cols-2 print:gap-3">
             {/* Where your money goes */}
             <Panel title={t("Where your money goes")} className="break-inside-avoid">
               <div className="mb-5">
@@ -571,8 +571,8 @@ function Dashboard() {
 
           {/* Print-only page 2: the details behind the overview. */}
           <div className="hidden print:block">
-            <div className="plan-print-summary-card space-y-5 rounded-lg border border-border p-6 text-sm print:space-y-3 print:p-4">
-              <p className="font-semibold tracking-tight">{t("The details")}</p>
+            <div className="plan-print-summary-card space-y-5 rounded-lg border border-border p-6 text-sm print:grid print:grid-cols-2 print:gap-x-8 print:gap-y-3 print:space-y-0 print:p-4 print:text-xs">
+              <p className="font-semibold tracking-tight print:col-span-2">{t("The details")}</p>
               {[
                 {
                   title: t("Investments"),
@@ -660,7 +660,7 @@ function Dashboard() {
                 .map((sec) => (
                   <div key={sec.title}>
                     <p className="font-semibold">{sec.title}</p>
-                    <dl className="tnum mt-2 grid grid-cols-2 gap-x-8 gap-y-1.5">
+                    <dl className="tnum mt-2 grid grid-cols-2 gap-x-8 gap-y-1.5 print:mt-1 print:grid-cols-1 print:gap-y-0.5">
                       {sec.rows!.map(([k, v]) => (
                         <div key={k} className="flex justify-between gap-4">
                           <dt className="text-muted-foreground">{k}</dt>
@@ -670,12 +670,12 @@ function Dashboard() {
                     </dl>
                   </div>
                 ))}
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground print:col-span-2">
                 {t("Made with FinBuddy · {date}", {
                   date: new Date().toLocaleDateString(locale, { year: "numeric", month: "long", day: "numeric" }),
                 })}
                </p>
-              <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+              <p className="mt-4 text-xs leading-relaxed text-muted-foreground print:col-span-2 print:mt-0">
                 {t("FinBuddy does arithmetic, not advice. These are projections based on assumptions you can change — not a prediction, and not a recommendation to buy or sell anything.")}
               </p>
             </div>
