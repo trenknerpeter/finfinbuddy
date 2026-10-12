@@ -7,6 +7,23 @@ const STORAGE_KEY = "finbuddy.lang";
 
 /** English source text (with {placeholders}) → Czech. Missing keys fall back to English. */
 const CS: Record<string, string> = {
+  // Homepage
+  Home: "Domů",
+  "Your money, in one picture": "Vaše peníze v jednom obrazu",
+  "See where your money is heading.": "Podívejte se, kam vaše peníze směřují.",
+  "FinBuddy is a set of quick, private calculators. Each tab answers one question — together they build your personal dashboard. Everything stays in your browser.":
+    "FinBuddy je sada rychlých a soukromých kalkulaček. Každá záložka odpoví na jednu otázku — dohromady sestaví váš osobní přehled. Vše zůstává ve vašem prohlížeči.",
+  "Start with Invest": "Začít investicemi",
+  "Jump to Dashboard": "Přejít na přehled",
+  "Ideal journey": "Ideální postup",
+  "See how monthly contributions compound over time — and what they're worth in today's money.":
+    "Podívejte se, jak měsíční vklady v čase rostou — a kolik mají hodnotu v dnešních cenách.",
+  "Compare your current rate against a what-if rate and see what it really costs.":
+    "Porovnejte současnou sazbu s hypotetickou a zjistěte, kolik vás to skutečně stojí.",
+  "Answer a few quick questions and find out when you can realistically stop working.":
+    "Odpovězte na pár rychlých otázek a zjistěte, kdy můžete reálně přestat pracovat.",
+  "Your numbers carry across tabs and come together on the":
+    "Vaše čísla se přenášejí mezi záložkami a spojují se v záložce",
   // Two-pot plan
   "How much do you invest each month?": "Kolik měsíčně investujete?",
   "Regular contributions to funds, ETFs or a pension — whatever you're actually managing now.":

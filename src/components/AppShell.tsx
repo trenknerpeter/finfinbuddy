@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { House } from "lucide-react";
 import type { ReactNode } from "react";
 import { CURRENCIES, isCurrency, useCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
@@ -54,10 +55,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-20 border-b border-border bg-background">
         <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-5">
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
             <span className="size-2 rounded-full bg-primary" />
             <span className="text-base font-semibold tracking-tight">FinBuddy</span>
-          </div>
+          </Link>
           <div className="flex items-center gap-2">
             <LangSelect />
             <CurrencySelect />
@@ -65,6 +66,19 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         <div className="mx-auto max-w-[1200px] px-5">
           <nav className="flex items-center gap-7">
+            <Link
+              to="/"
+              aria-label={t("Home")}
+              title={t("Home")}
+              className={cn(
+                "-mb-px flex h-11 items-center border-b-2 transition-colors",
+                pathname === "/"
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <House className="size-[18px]" />
+            </Link>
             {TABS.map((tab) => {
               const active = pathname.startsWith(tab.to);
               return (
