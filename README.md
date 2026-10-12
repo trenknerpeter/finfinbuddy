@@ -60,3 +60,7 @@ This project is connected to [Lovable](https://lovable.dev): changes made in the
 ## Disclaimer
 
 FinBuddy is an educational planning tool, not financial advice. Projections rest on the assumptions you enter; real returns, rates and inflation will differ.
+
+## License
+
+[MIT](LICENSE)
