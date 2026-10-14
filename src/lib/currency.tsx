@@ -35,8 +35,8 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       isCurrency,
       hasLegacyData((k) => ls.getItem(k)),
       "EUR",
+      "CZK",
     );
-    if (!pref) return;
     setCurrency(pref.value);
     if (pref.persist) {
       try {

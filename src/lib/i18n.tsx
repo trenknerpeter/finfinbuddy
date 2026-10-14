@@ -452,8 +452,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       isLang,
       hasLegacyData((k) => ls.getItem(k)),
       "en",
+      "cs",
     );
-    if (!pref) return;
     setLangState(pref.value);
     if (pref.persist) {
       try {

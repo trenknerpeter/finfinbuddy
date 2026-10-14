@@ -22,18 +22,18 @@ describe("resolvePref", () => {
   const isLang = (v: unknown): v is "en" | "cs" => v === "en" || v === "cs";
 
   it("a saved choice always wins", () => {
-    expect(resolvePref("cs", isLang, true, "en")).toEqual({ value: "cs", persist: false });
+    expect(resolvePref("cs", isLang, true, "en", "cs")).toEqual({ value: "cs", persist: false });
   });
 
   it("an existing user who never chose keeps the old default, and it gets saved", () => {
-    expect(resolvePref(null, isLang, true, "en")).toEqual({ value: "en", persist: true });
+    expect(resolvePref(null, isLang, true, "en", "cs")).toEqual({ value: "en", persist: true });
   });
 
-  it("a first-time visitor keeps the new default (nothing to change)", () => {
-    expect(resolvePref(null, isLang, false, "en")).toBeNull();
+  it("a first-time visitor gets the new default, saved so later visits don't look like an old user", () => {
+    expect(resolvePref(null, isLang, false, "en", "cs")).toEqual({ value: "cs", persist: true });
   });
 
   it("an invalid saved value counts as no choice", () => {
-    expect(resolvePref("de", isLang, true, "en")).toEqual({ value: "en", persist: true });
+    expect(resolvePref("de", isLang, true, "en", "cs")).toEqual({ value: "en", persist: true });
   });
 });
