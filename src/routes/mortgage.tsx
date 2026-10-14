@@ -15,6 +15,7 @@ import { PaymentBreakdownChart } from "@/components/mortgage/PaymentBreakdownCha
 import { Switch } from "@/components/ui/switch";
 import { useCurrencyScale, useFormatters } from "@/lib/currency";
 import { buildScenario, solveMonths, solvePayment } from "@/lib/finance";
+import { byCurrency } from "@/lib/scenarioDefaults";
 import { useScenario } from "@/lib/useScenario";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -57,8 +58,17 @@ const DEFAULTS = {
   homeRate: 1,
 };
 
+const CZK_DEFAULTS: typeof DEFAULTS = {
+  ...DEFAULTS,
+  principal: 3500000,
+  rate: 4.5,
+  payment: 22000,
+  newRate: 5.5,
+  extraAmount: 200000,
+};
+
 function Mortgage() {
-  const [s, patch] = useScenario("finbuddy.mortgage", DEFAULTS);
+  const [s, patch] = useScenario("finbuddy.mortgage", byCurrency(DEFAULTS, CZK_DEFAULTS));
   const { money, signedMoney, percent, symbol } = useFormatters();
   const scale = useCurrencyScale();
   const { t, count } = useT();

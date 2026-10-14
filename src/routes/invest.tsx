@@ -8,6 +8,7 @@ import { CopyLinkButton } from "@/components/CopyLinkButton";
 import { InvestChart } from "@/components/invest/InvestChart";
 import { useCurrencyScale, useFormatters } from "@/lib/currency";
 import { computeInvest } from "@/lib/finance";
+import { byCurrency } from "@/lib/scenarioDefaults";
 import { useScenario } from "@/lib/useScenario";
 import { useT } from "@/lib/i18n";
 
@@ -44,6 +45,14 @@ const DEFAULTS = {
   sInitial: 5000,
   sMonthly: 200,
   sRate: 3,
+};
+
+const CZK_DEFAULTS: typeof DEFAULTS = {
+  ...DEFAULTS,
+  initial: 100000,
+  monthly: 3000,
+  sInitial: 50000,
+  sMonthly: 2000,
 };
 
 // Big figures shrink to fit the width of their own box (not the viewport), so
@@ -98,7 +107,7 @@ function Kpi({
 }
 
 function Invest() {
-  const [s, patch] = useScenario("finbuddy.invest", DEFAULTS);
+  const [s, patch] = useScenario("finbuddy.invest", byCurrency(DEFAULTS, CZK_DEFAULTS));
   const { money, percent, symbol } = useFormatters();
   const scale = useCurrencyScale();
   const { t, count } = useT();

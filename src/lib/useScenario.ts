@@ -1,16 +1,24 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { useCurrency } from "./currency";
+import { fillUnowned, resolveDefaults, type ScenarioDefaults } from "./scenarioDefaults";
 
 type Scalar = number | boolean;
 
 /**
  * Keeps a tab's scenario in the URL query string (replace, not push) and mirrors
  * it to localStorage. On a cold visit with no query params, localStorage wins.
+ * Per-currency defaults keep following the currency for every field the user doesn't own
+ * (loaded from a link or storage, or edited).
  */
-export function useScenario<T extends Record<string, Scalar>>(storageKey: string, defaults: T) {
-  const [state, setState] = useState<T>(defaults);
+export function useScenario<T extends Record<string, Scalar>>(
+  storageKey: string,
+  defaultsFor: ScenarioDefaults<T>,
+) {
   const { currency } = useCurrency();
+  const defaults = resolveDefaults(defaultsFor, currency);
+  const [state, setState] = useState<T>(defaults);
+  const owned = useRef(new Set<string>());
   const router = useRouter();
   // State, not a ref: the mirror effect must skip the render that still holds the defaults,
   // or it would write them over the saved scenario before it loads.
@@ -37,12 +45,14 @@ export function useScenario<T extends Record<string, Scalar>>(storageKey: string
     const params = new URLSearchParams(window.location.search);
     const fromUrl = decode(params);
     if (Object.keys(fromUrl).length > 0) {
+      for (const k of Object.keys(fromUrl)) owned.current.add(k);
       setState((s) => ({ ...s, ...fromUrl }));
     } else {
       try {
         const stored = window.localStorage.getItem(storageKey);
         if (stored) {
           const parsed = JSON.parse(stored) as Partial<T>;
+          for (const k of Object.keys(parsed)) owned.current.add(k);
           setState((s) => ({ ...s, ...parsed }));
         }
       } catch {
@@ -71,7 +81,17 @@ export function useScenario<T extends Record<string, Scalar>>(storageKey: string
     }
   }, [hydrated, state, currency, router, storageKey]);
 
-  const patch = useCallback((p: Partial<T>) => setState((s) => ({ ...s, ...p })), []);
+  // The currency resolves after mount (and can change): refresh the fields the user doesn't own.
+  useEffect(() => {
+    if (hydrated) setState((s) => fillUnowned(s, defaults, owned.current));
+    // `defaults` is a new object each render for function defaults; the currency is what matters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, currency]);
+
+  const patch = useCallback((p: Partial<T>) => {
+    for (const k of Object.keys(p)) owned.current.add(k);
+    setState((s) => ({ ...s, ...p }));
+  }, []);
 
   return [state, patch] as const;
 }

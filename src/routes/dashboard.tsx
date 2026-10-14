@@ -444,7 +444,7 @@ function Dashboard() {
                   type="number"
                   min={0}
                   value={store.income || ""}
-                  placeholder={money(3000)}
+                  placeholder={money(currency === "CZK" ? 40000 : 3000)}
                   onChange={(e) => update({ income: Math.max(0, parseFloat(e.target.value) || 0) })}
                   className="tnum mt-1.5 h-10 w-full rounded-md border border-border bg-background px-3 text-sm outline-none focus:border-primary"
                 />
