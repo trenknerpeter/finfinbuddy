@@ -269,7 +269,7 @@ function Dashboard() {
     setStore(loadDashboard());
     setSaved({ invest: loadInvest(), mortgage: loadMortgage(), plan: loadPlan() });
     const salary = parseSalaryStore(window.localStorage.getItem(SALARY_KEY));
-    setSalaryNet(salary ? calcSalary(salary).net : null);
+    setSalaryNet(salary ? calcSalary(salary).payout : null);
     setHydrated(true);
   }, []);
 

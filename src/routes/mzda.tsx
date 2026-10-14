@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
-import { Info } from "lucide-react";
+import { AlertTriangle, Info } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -96,7 +96,11 @@ function Mzda() {
   if (r.childBenefit.total) rows.push({ label: t("Child benefit"), value: r.childBenefit.total });
   rows.push({ label: t("Income tax"), value: -r.tax });
   if (r.childBenefit.bonus) rows.push({ label: t("Child bonus"), value: r.childBenefit.bonus });
-  rows.push({ label: t("Net salary"), value: r.net, strong: true });
+  rows.push(
+    r.owed > 0
+      ? { label: t("You owe"), value: -r.owed, strong: true }
+      : { label: t("Net salary"), value: r.payout, strong: true },
+  );
 
   const bonusThreshold = CZ_2026.minWage / 2;
   const bonusBlocked = s.signed && s.kids > 0 && r.gross > 0 && r.gross < bonusThreshold;
@@ -191,6 +195,23 @@ function Mzda() {
                     onCheckedChange={(checked) => patch({ ztp: checked })}
                   />
                 </div>
+                <div>
+                  <div className="flex min-h-11 items-center justify-between gap-4">
+                    <label htmlFor="exempt" className="text-sm">
+                      {t("Exempt from the minimum health insurance base")}
+                    </label>
+                    <Switch
+                      id="exempt"
+                      checked={s.exempt}
+                      onCheckedChange={(checked) => patch({ exempt: checked })}
+                    />
+                  </div>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    {t(
+                      "Students, pensioners, people on parental leave and others don't top up health insurance when they earn less than the minimum wage.",
+                    )}
+                  </p>
+                </div>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -225,7 +246,18 @@ function Mzda() {
         </div>
 
         <Panel>
-          <p className="tnum text-4xl font-semibold tracking-tight">{formatCzk(r.net)}</p>
+          <p className="tnum text-4xl font-semibold tracking-tight">{formatCzk(r.payout)}</p>
+          {r.owed > 0 && (
+            <div className="mt-3 flex items-start gap-3 rounded-md border border-negative/30 bg-negative/5 p-4 text-sm text-negative">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <p>
+                {t(
+                  "The health insurance top-up is more than your pay. Nothing is paid out and you still owe {v}, which you settle with your employer.",
+                  { v: formatCzk(r.owed) },
+                )}
+              </p>
+            </div>
+          )}
           {r.childBenefit.bonus > 0 && (
             <p className="mt-1 text-sm text-muted-foreground">
               {t("including child bonus {v}", { v: formatCzk(r.childBenefit.bonus) })}
@@ -266,7 +298,7 @@ function Mzda() {
           {r.healthTopUp > 0 && (
             <p className="mt-4 text-xs text-muted-foreground">
               {t(
-                "Health insurance includes a {v} top-up to the minimum base (salary below {min}). Students, pensioners and some others are exempt.",
+                "Health insurance includes a {v} top-up to the minimum base (salary below {min}). Students, pensioners and some others are exempt: see Other discounts.",
                 { v: formatCzk(r.healthTopUp), min: formatCzk(CZ_2026.minWage) },
               )}
             </p>

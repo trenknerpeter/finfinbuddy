@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calcSalary, normalizeInput, parseSalaryStore, SALARY_DEFAULTS } from "./salary";
+import { calcSalary, formatCzk, normalizeInput, parseSalaryStore, SALARY_DEFAULTS } from "./salary";
 
 const base = { gross: 40000, signed: true, kids: 0, kidsZtp: 0, disability: 0, ztp: false };
 
@@ -137,6 +137,36 @@ describe("calcSalary", () => {
     expect(calcSalary({ ...base, gross: 0 }).health).toBe(0);
   });
 
+  it("pay below the top-up: nothing is paid out and the rest is owed (mzdy.cz: −2,005)", () => {
+    const r = calcSalary({ ...base, gross: 1000 });
+    expect(r.health).toBe(2934);
+    expect(r.net).toBe(-2005);
+    expect(r.payout).toBe(0);
+    expect(r.owed).toBe(2005);
+  });
+
+  it("break-even around 2,968 Kč", () => {
+    expect(calcSalary({ ...base, gross: 2967 })).toMatchObject({ net: -1, payout: 0, owed: 1 });
+    expect(calcSalary({ ...base, gross: 2968 })).toMatchObject({ net: 0, payout: 0, owed: 0 });
+    expect(calcSalary({ ...base, gross: 3000 })).toMatchObject({ net: 33, payout: 33, owed: 0 });
+  });
+
+  it("payout equals net for normal salaries", () => {
+    expect(calcSalary(base)).toMatchObject({ net: 31930, payout: 31930, owed: 0 });
+  });
+
+  it("exempt from the minimum base: no health top-up", () => {
+    const r = calcSalary({ ...base, gross: 10000, kids: 1, exempt: true });
+    expect(r.health).toBe(450);
+    expect(r.healthTopUp).toBe(0);
+    expect(r.net).toBe(8840);
+    expect(calcSalary({ ...base, gross: 10000, kids: 1, exempt: false }).net).toBe(7166);
+    expect(calcSalary({ ...base, gross: 1000, exempt: true })).toMatchObject({
+      payout: 884,
+      owed: 0,
+    });
+  });
+
   it("insurance never drifts by a crown from floating point (sweep)", () => {
     for (let g = 22400; g <= 300000; g += 137) {
       const r = calcSalary({ ...base, gross: g });
@@ -151,7 +181,15 @@ describe("normalizeInput", () => {
   it("clamps nonsense from a hand-edited URL", () => {
     expect(
       normalizeInput({ gross: -5, kids: 9, kidsZtp: 12, disability: 2, signed: true, ztp: "yes" }),
-    ).toEqual({ gross: 0, signed: true, kids: 6, kidsZtp: 6, disability: 0, ztp: false });
+    ).toEqual({
+      gross: 0,
+      signed: true,
+      kids: 6,
+      kidsZtp: 6,
+      disability: 0,
+      ztp: false,
+      exempt: false,
+    });
   });
 
   it("rounds fractional values", () => {
@@ -191,6 +229,14 @@ describe("parseSalaryStore", () => {
       kidsZtp: 0,
       disability: 0,
       ztp: false,
+      exempt: false,
     });
+  });
+});
+
+describe("formatCzk", () => {
+  it("never shows a minus sign on zero", () => {
+    expect(formatCzk(-0)).toBe(formatCzk(0));
+    expect(formatCzk(-0)).not.toContain("-");
   });
 });

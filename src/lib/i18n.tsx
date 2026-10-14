@@ -430,8 +430,14 @@ const CS: Record<string, string> = {
     "Daňový bonus se vyplácí až od měsíční mzdy {v}.",
   "Above the annual social insurance cap ({v}): over a full year part of your salary won't be charged social insurance, so real net pay will be a little higher.":
     "Nad ročním stropem sociálního pojištění ({v}): za celý rok se z části mzdy sociální pojištění neodvede, skutečná čistá mzda tak bude o něco vyšší.",
-  "Health insurance includes a {v} top-up to the minimum base (salary below {min}). Students, pensioners and some others are exempt.":
-    "Zdravotní pojištění zahrnuje doplatek {v} do minimálního vyměřovacího základu (mzda pod {min}). Studenti, důchodci a některé další skupiny jsou osvobozeni.",
+  "Health insurance includes a {v} top-up to the minimum base (salary below {min}). Students, pensioners and some others are exempt: see Other discounts.":
+    "Zdravotní pojištění zahrnuje doplatek {v} do minimálního vyměřovacího základu (mzda pod {min}). Studenti, důchodci a některé další skupiny jsou osvobozeni: viz Další slevy.",
+  "Exempt from the minimum health insurance base": "Osvobozen od minimálního vyměřovacího základu",
+  "Students, pensioners, people on parental leave and others don't top up health insurance when they earn less than the minimum wage.":
+    "Studenti, důchodci, rodiče na rodičovské a další skupiny nedoplácejí zdravotní pojištění, když vydělávají méně než minimální mzdu.",
+  "You owe": "Doplácíte",
+  "The health insurance top-up is more than your pay. Nothing is paid out and you still owe {v}, which you settle with your employer.":
+    "Doplatek zdravotního pojištění je vyšší než mzda. Nic se nevyplatí a {v} ještě doplácíte, vyrovnáte se se zaměstnavatelem.",
   "Valid for {year} · an educational estimate, not payroll advice.":
     "Platí pro rok {year} · orientační výpočet, nikoli mzdové poradenství.",
 };

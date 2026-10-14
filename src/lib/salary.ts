@@ -18,6 +18,8 @@ export type SalaryInput = {
   disability: Disability;
   /** Employee holds a ZTP/P card. */
   ztp: boolean;
+  /** Exempt from the minimum health insurance base (students, pensioners, parental leave…). */
+  exempt: boolean;
 };
 
 /** Loose input as it arrives from URL params or localStorage. */
@@ -76,7 +78,12 @@ export type SalaryResult = {
   childBenefit: { total: number; reducesTax: number; bonus: number };
   /** Final monthly tax advance, ≥ 0. */
   tax: number;
+  /** Arithmetic net; negative when the health top-up exceeds the pay. */
   net: number;
+  /** What actually reaches the account: max(0, net). */
+  payout: number;
+  /** What the employee still owes when net is negative: max(0, −net). */
+  owed: number;
   employerSocial: number;
   employerHealth: number;
   employerCost: number;
@@ -93,7 +100,16 @@ export const SALARY_DEFAULTS: {
   kidsZtp: number;
   disability: number;
   ztp: boolean;
-} = { gross: 48967, signed: true, kids: 0, kidsZtp: 0, disability: 0, ztp: false };
+  exempt: boolean;
+} = {
+  gross: 48967,
+  signed: true,
+  kids: 0,
+  kidsZtp: 0,
+  disability: 0,
+  ztp: false,
+  exempt: false,
+};
 
 const MAX_KIDS = 6;
 
@@ -113,7 +129,15 @@ export function normalizeInput(raw: SalaryDraft): SalaryInput {
   const kidsZtp = clamp(Math.round(toNum(raw.kidsZtp)), 0, kids);
   const d = Math.round(toNum(raw.disability));
   const disability: Disability = d === 1 || d === 3 ? d : 0;
-  return { gross, signed: raw.signed !== false, kids, kidsZtp, disability, ztp: raw.ztp === true };
+  return {
+    gross,
+    signed: raw.signed !== false,
+    kids,
+    kidsZtp,
+    disability,
+    ztp: raw.ztp === true,
+    exempt: raw.exempt === true,
+  };
 }
 
 /** ZTP/P children take the highest-order slots (largest benefit), which parents may choose. */
@@ -127,7 +151,7 @@ function childBenefitTotal(kids: number, kidsZtp: number, rules: SalaryRules) {
 }
 
 export function calcSalary(input: SalaryDraft, rules: SalaryRules = CZ_2026): SalaryResult {
-  const { gross, signed, kids, kidsZtp, disability, ztp } = normalizeInput(input);
+  const { gross, signed, kids, kidsZtp, disability, ztp, exempt } = normalizeInput(input);
 
   const employerSocial = pctUp(gross, rules.employerSocialBp);
   // Health insurance is rounded as a 13.5 % total; the employer pays it minus the employee's 4.5 %.
@@ -135,10 +159,10 @@ export function calcSalary(input: SalaryDraft, rules: SalaryRules = CZ_2026): Sa
 
   const social = pctUp(gross, rules.employeeSocialBp);
   const baseHealth = pctUp(gross, rules.employeeHealthBp);
-  // Below the minimum wage the employee tops the premium up to the minimum base
-  // (standard case; students, pensioners and others exempt by law are not modelled).
+  // Below the minimum wage the employee tops the premium up to the minimum base,
+  // unless exempt (students, pensioners, parental leave and others listed by law).
   const health =
-    gross > 0 && gross < rules.minWage
+    !exempt && gross > 0 && gross < rules.minWage
       ? pctUp(rules.minWage, rules.healthTotalBp) - employerHealth
       : baseHealth;
   const healthTopUp = health - baseHealth;
@@ -165,6 +189,8 @@ export function calcSalary(input: SalaryDraft, rules: SalaryRules = CZ_2026): Sa
   const bonus = gross >= rules.minWage / 2 ? total - reducesTax : 0;
   const tax = taxAfterCredits - reducesTax;
 
+  const net = gross - social - health - tax + bonus;
+
   return {
     gross,
     social,
@@ -176,7 +202,9 @@ export function calcSalary(input: SalaryDraft, rules: SalaryRules = CZ_2026): Sa
     taxAfterCredits,
     childBenefit: { total, reducesTax, bonus },
     tax,
-    net: gross - social - health - tax + bonus,
+    net,
+    payout: Math.max(0, net),
+    owed: Math.max(0, -net),
     employerSocial,
     employerHealth,
     employerCost: gross + employerSocial + employerHealth,
@@ -202,5 +230,5 @@ const czk = new Intl.NumberFormat("cs-CZ", {
   maximumFractionDigits: 0,
 });
 
-/** Always Kč, independent of the app currency. */
-export const formatCzk = (value: number) => czk.format(isFinite(value) ? value : 0);
+/** Always Kč, independent of the app currency. `+ 0` turns −0 into 0 so it never prints "−0 Kč". */
+export const formatCzk = (value: number) => czk.format(isFinite(value) ? value + 0 : 0);
