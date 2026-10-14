@@ -16,7 +16,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Money Kalkulačka helps you see where your money is heading: project your investments, stress-test your mortgage and plan when you can stop working.",
+          "Money Kalkulačka helps you see where your money is heading: work out your net salary, project your investments, stress-test your mortgage and plan when you can stop working.",
       },
       {
         property: "og:title",
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/")({
       },
       {
         property: "og:description",
-        content: "Three quick calculators that add up to one picture of your finances. No sign-up.",
+        content: "Four quick calculators that add up to one picture of your finances. No sign-up.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
