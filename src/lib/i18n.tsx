@@ -384,6 +384,9 @@ const CS: Record<string, string> = {
   Debt: "Dluh",
   // Mzda (salary)
   Salary: "Mzda",
+  "Turn your gross salary into net pay: tax, insurance and child benefit, 2026 rules.":
+    "Z hrubé mzdy na čistou: daň, pojištění a zvýhodnění na děti podle pravidel pro rok 2026.",
+  "Start with Salary": "Začít mzdou",
   "Net salary": "Čistá mzda",
   "Gross to net for Czech employees, 2026 rules.":
     "Z hrubé na čistou pro zaměstnance v ČR, pravidla pro rok 2026.",

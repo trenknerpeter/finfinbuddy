@@ -56,6 +56,7 @@ function CurrencySelect() {
 }
 
 const TABS = [
+  { label: "Salary", to: "/mzda" },
   { label: "Invest", to: "/invest" },
   { label: "Mortgage", to: "/mortgage" },
   { label: "Plan", to: "/plan" },
@@ -80,13 +81,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
         <div className="mx-auto max-w-[1200px] px-5">
-          <nav className="flex items-center gap-7">
+          <nav className="flex items-center gap-5 overflow-x-auto [scrollbar-width:none] sm:gap-7">
             <Link
               to="/"
               aria-label={t("Home")}
               title={t("Home")}
               className={cn(
-                "-mb-px flex h-11 items-center border-b-2 transition-colors",
+                "-mb-px flex h-11 shrink-0 items-center border-b-2 transition-colors",
                 pathname === "/"
                   ? "border-primary text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground",
@@ -101,7 +102,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   key={tab.to}
                   to={tab.to}
                   className={cn(
-                    "-mb-px flex h-11 items-center border-b-2 text-sm transition-colors",
+                    "-mb-px flex h-11 shrink-0 items-center whitespace-nowrap border-b-2 text-sm transition-colors",
                     active
                       ? "border-primary font-medium text-foreground"
                       : "border-transparent text-muted-foreground hover:text-foreground",

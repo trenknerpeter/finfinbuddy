@@ -1,7 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, ChevronRight } from "lucide-react";
 import type { ComponentType } from "react";
-import { InvestVisual, MortgageVisual, PlanVisual } from "@/components/home/Illustrations";
+import {
+  InvestVisual,
+  MortgageVisual,
+  PlanVisual,
+  SalaryVisual,
+} from "@/components/home/Illustrations";
 import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
@@ -13,7 +18,10 @@ export const Route = createFileRoute("/")({
         content:
           "Money Kalkulačka helps you see where your money is heading: project your investments, stress-test your mortgage and plan when you can stop working.",
       },
-      { property: "og:title", content: "Money Kalkulačka — Invest, mortgage & retirement planning" },
+      {
+        property: "og:title",
+        content: "Money Kalkulačka — Invest, mortgage & retirement planning",
+      },
       {
         property: "og:description",
         content: "Three quick calculators that add up to one picture of your finances. No sign-up.",
@@ -27,13 +35,20 @@ export const Route = createFileRoute("/")({
 
 const CARDS: {
   step: number;
-  to: "/invest" | "/mortgage" | "/plan";
+  to: "/mzda" | "/invest" | "/mortgage" | "/plan";
   title: string;
   subtitle: string;
   Visual: ComponentType;
 }[] = [
   {
     step: 1,
+    to: "/mzda",
+    title: "Salary",
+    subtitle: "Turn your gross salary into net pay: tax, insurance and child benefit, 2026 rules.",
+    Visual: SalaryVisual,
+  },
+  {
+    step: 2,
     to: "/invest",
     title: "Invest",
     subtitle:
@@ -41,14 +56,14 @@ const CARDS: {
     Visual: InvestVisual,
   },
   {
-    step: 2,
+    step: 3,
     to: "/mortgage",
     title: "Mortgage",
     subtitle: "Compare your current rate against a what-if rate and see what it really costs.",
     Visual: MortgageVisual,
   },
   {
-    step: 3,
+    step: 4,
     to: "/plan",
     title: "Plan",
     subtitle: "Answer a few quick questions and find out when you can realistically stop working.",
@@ -56,7 +71,7 @@ const CARDS: {
   },
 ];
 
-const JOURNEY = ["Invest", "Mortgage", "Plan", "Dashboard"] as const;
+const JOURNEY = ["Salary", "Invest", "Mortgage", "Plan", "Dashboard"] as const;
 
 function Home() {
   const { t } = useT();
@@ -75,10 +90,10 @@ function Home() {
         </p>
         <div className="mt-6 flex flex-wrap items-center gap-4">
           <Link
-            to="/invest"
+            to="/mzda"
             className="inline-flex h-11 items-center gap-2 rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            {t("Start with Invest")}
+            {t("Start with Salary")}
             <ArrowRight className="size-4" />
           </Link>
           <Link
@@ -109,7 +124,7 @@ function Home() {
           ))}
         </div>
 
-        <div className="grid gap-5 md:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {CARDS.map(({ step, to, title, subtitle, Visual }) => (
             <Link
               key={to}

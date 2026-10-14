@@ -1,6 +1,6 @@
 # Money Kalkulačka
 
-Three quick calculators that add up to one picture of your finances: **invest**, **mortgage** and **when can I stop working**. No sign-up, no backend — everything runs in your browser and is saved locally.
+Four quick calculators that add up to one picture of your finances: **net salary**, **invest**, **mortgage** and **when can I stop working**. No sign-up, no backend — everything runs in your browser and is saved locally.
 
 **Live app**: https://moneykalkulacka.lovable.app
 
@@ -21,6 +21,7 @@ Three quick calculators that add up to one picture of your finances: **invest**,
 
 | Tab | Question it answers |
 | --- | --- |
+| **Mzda (Salary)** | What's my net pay from a gross salary under 2026 Czech rules, including tax credits and child benefit? What does my employer actually pay? |
 | **Invest** | How do monthly contributions compound over time, and what are they worth in today's money? |
 | **Mortgage** | What does a different rate really cost? Compare your current rate with a what-if, solve for term or payment, add one-off or yearly extra payments. |
 | **Plan** | A few quick questions to find out when you can realistically stop working. |
@@ -44,9 +45,9 @@ There is no server-side storage and no accounts. Your numbers live in `localStor
 
 ```
 src/
-  routes/       one file per tab (invest, mortgage, plan, dashboard)
+  routes/       one file per tab (mzda, invest, mortgage, plan, dashboard)
   components/   UI, per-tab components, shadcn primitives in ui/
-  lib/          the maths and state: finance.ts, retirement.ts, plan.ts,
+  lib/          the maths and state: salary.ts, finance.ts, retirement.ts, plan.ts,
                 dashboard.ts, snapshots.ts, i18n.tsx, currency.tsx
 docs/superpowers/specs/   design notes for larger changes
 ```
@@ -64,7 +65,7 @@ npm i
 npm run dev
 ```
 
-Other scripts: `npm run build`, `npm run lint`, `npm run format`.
+Other scripts: `npm run build`, `npm test`, `npm run lint`, `npm run format`.
 
 ## Built with Lovable
 

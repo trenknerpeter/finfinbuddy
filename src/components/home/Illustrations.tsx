@@ -90,3 +90,37 @@ export function PlanVisual() {
     </svg>
   );
 }
+
+export function SalaryVisual() {
+  return (
+    <svg viewBox="0 0 160 96" className="h-full w-full" aria-hidden="true">
+      {/* gross bar, then net bar after deductions */}
+      <rect x="22" y="14" width="34" height="72" rx="3" className="fill-primary" opacity="0.25" />
+      <rect
+        x="22"
+        y="14"
+        width="34"
+        height="18"
+        rx="3"
+        className="fill-foreground"
+        opacity="0.55"
+      />
+      <path
+        d="M64 50 L 92 50"
+        fill="none"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        className="stroke-muted-foreground"
+      />
+      <path
+        d="M86 44 L 94 50 L 86 56"
+        fill="none"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="stroke-muted-foreground"
+      />
+      <rect x="104" y="32" width="34" height="54" rx="3" className="fill-primary" />
+    </svg>
+  );
+}
