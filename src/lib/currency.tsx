@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { hasLegacyData, resolvePref } from "./prefs";
 
 export const CURRENCIES = [
   { code: "EUR", symbol: "€", locale: "de-DE" },
@@ -28,8 +29,22 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       setCurrency(fromUrl);
       return;
     }
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (isCurrency(stored)) setCurrency(stored);
+    const ls = window.localStorage;
+    const pref = resolvePref(
+      ls.getItem(STORAGE_KEY),
+      isCurrency,
+      hasLegacyData((k) => ls.getItem(k)),
+      "EUR",
+    );
+    if (!pref) return;
+    setCurrency(pref.value);
+    if (pref.persist) {
+      try {
+        ls.setItem(STORAGE_KEY, pref.value);
+      } catch {
+        /* ignore */
+      }
+    }
   }, []);
 
   const update = (c: CurrencyCode) => {

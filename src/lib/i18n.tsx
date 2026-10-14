@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { hasLegacyData, resolvePref } from "./prefs";
 
 export const LANGS = ["en", "cs"] as const;
 export type Lang = (typeof LANGS)[number];
@@ -443,8 +444,17 @@ const LangContext = createContext<{ lang: Lang; setLang: (l: Lang) => void }>({
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("cs");
   useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (isLang(stored)) setLangState(stored);
+    const ls = window.localStorage;
+    const pref = resolvePref(ls.getItem(STORAGE_KEY), isLang, hasLegacyData((k) => ls.getItem(k)), "en");
+    if (!pref) return;
+    setLangState(pref.value);
+    if (pref.persist) {
+      try {
+        ls.setItem(STORAGE_KEY, pref.value);
+      } catch {
+        /* ignore */
+      }
+    }
   }, []);
   useEffect(() => {
     document.documentElement.lang = lang;
