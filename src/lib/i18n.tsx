@@ -436,12 +436,12 @@ const CS: Record<string, string> = {
 type Vars = Record<string, string | number>;
 
 const LangContext = createContext<{ lang: Lang; setLang: (l: Lang) => void }>({
-  lang: "en",
+  lang: "cs",
   setLang: () => {},
 });
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
+  const [lang, setLangState] = useState<Lang>("cs");
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (isLang(stored)) setLangState(stored);

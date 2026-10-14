@@ -10,18 +10,17 @@ export const CURRENCIES = [
 
 export type CurrencyCode = (typeof CURRENCIES)[number]["code"];
 
-export const isCurrency = (v: unknown): v is CurrencyCode =>
-  CURRENCIES.some((c) => c.code === v);
+export const isCurrency = (v: unknown): v is CurrencyCode => CURRENCIES.some((c) => c.code === v);
 
 const CurrencyContext = createContext<{
   currency: CurrencyCode;
   setCurrency: (c: CurrencyCode) => void;
-}>({ currency: "EUR", setCurrency: () => {} });
+}>({ currency: "CZK", setCurrency: () => {} });
 
 const STORAGE_KEY = "finbuddy.currency";
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
-  const [currency, setCurrency] = useState<CurrencyCode>("EUR");
+  const [currency, setCurrency] = useState<CurrencyCode>("CZK");
 
   useEffect(() => {
     const fromUrl = new URLSearchParams(window.location.search).get("currency");
