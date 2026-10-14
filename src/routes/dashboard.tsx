@@ -14,7 +14,7 @@ import {
 } from "recharts";
 import { Panel } from "@/components/Panel";
 import { SnapshotBar } from "@/components/dashboard/SnapshotBar";
-import { useFormatters } from "@/lib/currency";
+import { useCurrency, useFormatters } from "@/lib/currency";
 import {
   deriveMetrics,
   loadDashboard,
@@ -27,6 +27,7 @@ import {
 } from "@/lib/dashboard";
 import { useT } from "@/lib/i18n";
 import { loadPlan } from "@/lib/plan";
+import { SALARY_KEY, calcSalary, formatCzk, parseSalaryStore } from "@/lib/salary";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard")({
@@ -206,7 +207,14 @@ function RetirementPathChart({ m }: { m: DashboardMetrics }) {
               label={(props: { viewBox?: { x?: number; y?: number; width?: number } }) => {
                 const { x = 0, y = 0, width = 0 } = props.viewBox ?? {};
                 return (
-                  <text x={x + width / 2} y={y + 22} textAnchor="middle" fill="var(--accent)" fontSize={12} fontWeight={600}>
+                  <text
+                    x={x + width / 2}
+                    y={y + 22}
+                    textAnchor="middle"
+                    fill="var(--accent)"
+                    fontSize={12}
+                    fontWeight={600}
+                  >
                     {living.age}
                   </text>
                 );
@@ -224,7 +232,14 @@ function RetirementPathChart({ m }: { m: DashboardMetrics }) {
               label={(props: { viewBox?: { x?: number; y?: number; width?: number } }) => {
                 const { x = 0, y = 0, width = 0 } = props.viewBox ?? {};
                 return (
-                  <text x={x + width / 2} y={y - 10} textAnchor="middle" fill="var(--foreground)" fontSize={12} fontWeight={600}>
+                  <text
+                    x={x + width / 2}
+                    y={y - 10}
+                    textAnchor="middle"
+                    fill="var(--foreground)"
+                    fontSize={12}
+                    fontWeight={600}
+                  >
                     {debtFree.age}
                   </text>
                 );
@@ -242,6 +257,8 @@ function Dashboard() {
   const { money, percent } = useFormatters();
   const [store, setStore] = useState<DashboardStore>({ income: 0 });
   const [hydrated, setHydrated] = useState(false);
+  const { currency } = useCurrency();
+  const [salaryNet, setSalaryNet] = useState<number | null>(null);
   const [saved, setSaved] = useState<{
     invest: ReturnType<typeof loadInvest>;
     mortgage: ReturnType<typeof loadMortgage>;
@@ -251,6 +268,8 @@ function Dashboard() {
   useEffect(() => {
     setStore(loadDashboard());
     setSaved({ invest: loadInvest(), mortgage: loadMortgage(), plan: loadPlan() });
+    const salary = parseSalaryStore(window.localStorage.getItem(SALARY_KEY));
+    setSalaryNet(salary ? calcSalary(salary).net : null);
     setHydrated(true);
   }, []);
 
@@ -310,7 +329,9 @@ function Dashboard() {
         <Panel className="py-14 text-center">
           <p className="text-base font-semibold">{t("Nothing here yet")}</p>
           <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-            {t("Fill in your numbers in Invest, Mortgage and Plan — the dashboard brings them together here.")}
+            {t(
+              "Fill in your numbers in Invest, Mortgage and Plan — the dashboard brings them together here.",
+            )}
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3 text-sm font-medium">
             <Link to="/invest" className="text-primary hover:underline">
@@ -367,15 +388,17 @@ function Dashboard() {
                   value={
                     m.ownership !== null
                       ? t("{p} yours", { p: percent(m.ownership * 100) })
-                      : mortgageFreeLabel ?? "—"
+                      : (mortgageFreeLabel ?? "—")
                   }
                   caption={
                     m.mortgageBalance <= 0
                       ? t("No mortgage")
                       : m.ownership !== null
-                        ? mortgageFreeLabel ?? t("The payment doesn't pay the loan off")
+                        ? (mortgageFreeLabel ?? t("The payment doesn't pay the loan off"))
                         : m.mortgageMonths !== null
-                          ? t("{years} to go", { years: count(Math.ceil(m.mortgageMonths / 12), "year") })
+                          ? t("{years} to go", {
+                              years: count(Math.ceil(m.mortgageMonths / 12), "year"),
+                            })
                           : undefined
                   }
                   action={
@@ -427,6 +450,27 @@ function Dashboard() {
                     "What lands in your account each month. Used only for the savings rate — stored in this browser.",
                   )}
                 </p>
+                {salaryNet !== null && salaryNet > 0 && currency === "CZK" ? (
+                  store.income !== salaryNet && (
+                    <p className="mt-2 text-sm text-muted-foreground print:hidden">
+                      {t("From Mzda: {v}", { v: formatCzk(salaryNet) })} ·{" "}
+                      <button
+                        type="button"
+                        onClick={() => update({ income: salaryNet })}
+                        className="font-medium text-primary hover:underline"
+                      >
+                        {t("Use")}
+                      </button>
+                    </p>
+                  )
+                ) : (
+                  <Link
+                    to="/mzda"
+                    className="mt-2 inline-block text-sm font-medium text-primary hover:underline print:hidden"
+                  >
+                    {t("Calculate from gross salary →")}
+                  </Link>
+                )}
               </div>
               {m.income > 0 ? (
                 <>
@@ -490,17 +534,23 @@ function Dashboard() {
                       ? t("On this path your pot doesn't reach your number before 90.")
                       : m.owedAtLiving > 0.5
                         ? m.debtFreeAge !== null
-                          ? t("From {a} you could live on {v} a month, with {d} still owed on the mortgage. Keep going until {b} to clear it.", {
-                              a: m.livingAge,
-                              v: money(plan?.spend ?? 0),
-                              d: money(m.owedAtLiving),
-                              b: m.debtFreeAge,
-                            })
-                          : t("From {a} you could live on {v} a month, with {d} still owed on the mortgage.", {
-                              a: m.livingAge,
-                              v: money(plan?.spend ?? 0),
-                              d: money(m.owedAtLiving),
-                            })
+                          ? t(
+                              "From {a} you could live on {v} a month, with {d} still owed on the mortgage. Keep going until {b} to clear it.",
+                              {
+                                a: m.livingAge,
+                                v: money(plan?.spend ?? 0),
+                                d: money(m.owedAtLiving),
+                                b: m.debtFreeAge,
+                              },
+                            )
+                          : t(
+                              "From {a} you could live on {v} a month, with {d} still owed on the mortgage.",
+                              {
+                                a: m.livingAge,
+                                v: money(plan?.spend ?? 0),
+                                d: money(m.owedAtLiving),
+                              },
+                            )
                         : t("From {a} you could live on {v} a month.", {
                             a: m.livingAge,
                             v: money(plan?.spend ?? 0),
@@ -509,7 +559,8 @@ function Dashboard() {
                   <RetirementPathChart m={m} />
                   <div className="mt-4 flex flex-wrap items-center gap-5 text-xs text-muted-foreground">
                     <span className="flex items-center gap-2">
-                      <span className="size-2.5 rounded-sm bg-primary/30 ring-1 ring-primary" /> {t("Your pot")}
+                      <span className="size-2.5 rounded-sm bg-primary/30 ring-1 ring-primary" />{" "}
+                      {t("Your pot")}
                     </span>
                     {m.target !== null && (
                       <span className="flex items-center gap-2">
@@ -528,40 +579,51 @@ function Dashboard() {
                     <p className="tnum mt-3 text-xs text-muted-foreground">
                       {m.outlook.debt > 0.5 && m.outlook.clearable
                         ? m.homeValue > 0
-                          ? t("At {age}: net worth {v}. Clear the mortgage and the home is fully yours.", {
-                              age: m.outlook.age,
-                              v: money(m.outlook.netWorth),
-                            })
+                          ? t(
+                              "At {age}: net worth {v}. Clear the mortgage and the home is fully yours.",
+                              {
+                                age: m.outlook.age,
+                                v: money(m.outlook.netWorth),
+                              },
+                            )
                           : t("At {age}: net worth {v}, enough to clear the mortgage too.", {
                               age: m.outlook.age,
                               v: money(m.outlook.netWorth),
                             })
                         : m.outlook.debt > 0.5
-                        ? t("At {age}: net worth {v}, with {d} still owed on the mortgage.", {
-                            age: m.outlook.age,
-                            v: money(m.outlook.netWorth),
-                            d: money(m.outlook.debt),
-                          })
-                        : m.mortgageBalance > 0
-                          ? m.homeValue > 0
-                            ? t("At {age}: net worth {v}, home fully yours.", {
+                          ? t("At {age}: net worth {v}, with {d} still owed on the mortgage.", {
+                              age: m.outlook.age,
+                              v: money(m.outlook.netWorth),
+                              d: money(m.outlook.debt),
+                            })
+                          : m.mortgageBalance > 0
+                            ? m.homeValue > 0
+                              ? t("At {age}: net worth {v}, home fully yours.", {
+                                  age: m.outlook.age,
+                                  v: money(m.outlook.netWorth),
+                                })
+                              : t("At {age}: net worth {v}, mortgage paid off.", {
+                                  age: m.outlook.age,
+                                  v: money(m.outlook.netWorth),
+                                })
+                            : t("At {age}: net worth {v}.", {
                                 age: m.outlook.age,
                                 v: money(m.outlook.netWorth),
-                              })
-                            : t("At {age}: net worth {v}, mortgage paid off.", {
-                                age: m.outlook.age,
-                                v: money(m.outlook.netWorth),
-                              })
-                          : t("At {age}: net worth {v}.", { age: m.outlook.age, v: money(m.outlook.netWorth) })}
+                              })}
                     </p>
                   )}
                 </>
               ) : (
                 <div className="py-10 text-center">
                   <p className="mx-auto max-w-sm text-sm leading-relaxed text-muted-foreground">
-                    {t("Answer the plan questions to see when you can stop working — and when the mortgage is cleared too.")}
+                    {t(
+                      "Answer the plan questions to see when you can stop working — and when the mortgage is cleared too.",
+                    )}
                   </p>
-                  <Link to="/plan" className="mt-4 inline-block text-sm font-medium text-primary hover:underline">
+                  <Link
+                    to="/plan"
+                    className="mt-4 inline-block text-sm font-medium text-primary hover:underline"
+                  >
                     {t("Answer the plan questions →")}
                   </Link>
                 </div>
@@ -605,7 +667,9 @@ function Dashboard() {
                         [t("Mortgage payment"), money(m.mortgagePayment)],
                         [
                           t("Term"),
-                          m.mortgageMonths !== null ? count(Math.ceil(m.mortgageMonths / 12), "year") : "—",
+                          m.mortgageMonths !== null
+                            ? count(Math.ceil(m.mortgageMonths / 12), "year")
+                            : "—",
                         ],
                         ...(mortgage.homeValue > 0
                           ? [
@@ -672,11 +736,17 @@ function Dashboard() {
                 ))}
               <p className="text-xs text-muted-foreground print:col-span-2">
                 {t("Made with Money Kalkulačka · {date}", {
-                  date: new Date().toLocaleDateString(locale, { year: "numeric", month: "long", day: "numeric" }),
+                  date: new Date().toLocaleDateString(locale, {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  }),
                 })}
-               </p>
+              </p>
               <p className="mt-4 text-xs leading-relaxed text-muted-foreground print:col-span-2 print:mt-0">
-                {t("Money Kalkulačka does arithmetic, not advice. These are projections based on assumptions you can change — not a prediction, and not a recommendation to buy or sell anything.")}
+                {t(
+                  "Money Kalkulačka does arithmetic, not advice. These are projections based on assumptions you can change — not a prediction, and not a recommendation to buy or sell anything.",
+                )}
               </p>
             </div>
           </div>

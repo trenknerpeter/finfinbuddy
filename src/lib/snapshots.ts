@@ -1,6 +1,6 @@
 /**
  * Master snapshots: one named bundle of every tab's saved state
- * (Invest, Mortgage, Plan, Dashboard income, currency). Stored locally.
+ * (Mzda, Invest, Mortgage, Plan, Dashboard income, currency). Stored locally.
  */
 export const SNAPSHOT_KEYS = [
   "finbuddy.invest",
@@ -8,6 +8,7 @@ export const SNAPSHOT_KEYS = [
   "finbuddy.profile.v1",
   "finbuddy.dashboard.v1",
   "finbuddy.currency",
+  "finbuddy.salary",
 ] as const;
 
 const LIST_KEY = "finbuddy.snapshots.v1";
@@ -30,7 +31,9 @@ export function captureData(): Record<string, string> {
 }
 
 export function hasAnyData(): boolean {
-  return SNAPSHOT_KEYS.slice(0, 4).some((k) => window.localStorage.getItem(k) !== null);
+  return SNAPSHOT_KEYS.some(
+    (k) => k !== "finbuddy.currency" && window.localStorage.getItem(k) !== null,
+  );
 }
 
 export function applyData(data: Record<string, string>) {
@@ -70,7 +73,12 @@ function newId() {
 
 export function saveSnapshot(name: string, data = captureData(), id?: string): Snapshot {
   const list = listSnapshots();
-  const snap: Snapshot = { id: id ?? newId(), name: name.trim() || "Snapshot", savedAt: new Date().toISOString(), data };
+  const snap: Snapshot = {
+    id: id ?? newId(),
+    name: name.trim() || "Snapshot",
+    savedAt: new Date().toISOString(),
+    data,
+  };
   const idx = list.findIndex((s) => s.id === snap.id);
   if (idx >= 0) list[idx] = snap;
   else list.unshift(snap);
