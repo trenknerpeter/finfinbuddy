@@ -66,6 +66,19 @@ describe("calcSalary", () => {
     expect(r.employerCost).toBe(14986);
   });
 
+  it("employer health = 13.5 % total minus employee share (mzdy.cz, non-round gross)", () => {
+    const low = calcSalary({ ...base, gross: 20001 });
+    expect(low.employerHealth).toBe(1800);
+    expect(low.health).toBe(1224);
+    expect(low.net).toBe(16911);
+    expect(low.employerCost).toBe(26762);
+    const mid = calcSalary({ ...base, gross: 40001 });
+    expect(mid.employerHealth).toBe(3600);
+    expect(mid.health).toBe(1801);
+    expect(mid.net).toBe(31914);
+    expect(mid.employerCost).toBe(53522);
+  });
+
   it("no bonus just below half the minimum wage (11,199)", () => {
     const r = calcSalary({ ...base, gross: 11199, kids: 1 });
     expect(r.childBenefit.bonus).toBe(0);

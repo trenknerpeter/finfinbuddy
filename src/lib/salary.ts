@@ -28,7 +28,6 @@ export type SalaryRules = {
   employeeSocialBp: number;
   employeeHealthBp: number;
   employerSocialBp: number;
-  employerHealthBp: number;
   taxBp: number;
   highTaxBp: number;
   /** Monthly tax base above which `highTaxBp` applies (36 × average wage / 12). */
@@ -51,7 +50,6 @@ export const CZ_2026: SalaryRules = {
   employeeSocialBp: 710,
   employeeHealthBp: 450,
   employerSocialBp: 2480,
-  employerHealthBp: 900,
   taxBp: 1500,
   highTaxBp: 2300,
   highTaxThreshold: 146901,
@@ -132,7 +130,8 @@ export function calcSalary(input: SalaryDraft, rules: SalaryRules = CZ_2026): Sa
   const { gross, signed, kids, kidsZtp, disability, ztp } = normalizeInput(input);
 
   const employerSocial = pctUp(gross, rules.employerSocialBp);
-  const employerHealth = pctUp(gross, rules.employerHealthBp);
+  // Health insurance is rounded as a 13.5 % total; the employer pays it minus the employee's 4.5 %.
+  const employerHealth = pctUp(gross, rules.healthTotalBp) - pctUp(gross, rules.employeeHealthBp);
 
   const social = pctUp(gross, rules.employeeSocialBp);
   const baseHealth = pctUp(gross, rules.employeeHealthBp);
