@@ -382,6 +382,49 @@ const CS: Record<string, string> = {
   "In {years}: {v}": "Za {years}: {v}",
   Assets: "Majetek",
   Debt: "Dluh",
+  // Mzda (salary)
+  Salary: "Mzda",
+  "Net salary": "Čistá mzda",
+  "Gross to net for Czech employees, 2026 rules.":
+    "Z hrubé na čistou pro zaměstnance v ČR, pravidla pro rok 2026.",
+  "Gross monthly salary": "Hrubá měsíční mzda",
+  "Signed tax declaration": "Podepsané prohlášení poplatníka",
+  "Without it, no tax credits or child benefit are applied each month.":
+    "Bez něj se měsíčně neuplatní žádné slevy na dani ani zvýhodnění na děti.",
+  Children: "Děti",
+  "of which with ZTP/P card": "z toho s průkazem ZTP/P",
+  "Other discounts": "Další slevy",
+  "Disability pension": "Invalidní důchod",
+  None: "Žádný",
+  "Degree I–II": "I. nebo II. stupeň",
+  "Degree III": "III. stupeň",
+  "ZTP/P card holder": "Držitel průkazu ZTP/P",
+  "including child bonus {v}": "včetně daňového bonusu {v}",
+  "Gross salary": "Hrubá mzda",
+  "Social insurance": "Sociální pojištění",
+  "Health insurance": "Zdravotní pojištění",
+  "Tax before credits": "Daň před slevami",
+  "Taxpayer credit": "Sleva na poplatníka",
+  "Disability credit": "Sleva na invaliditu",
+  "ZTP/P credit": "Sleva na držitele ZTP/P",
+  "Child benefit": "Zvýhodnění na děti",
+  "Income tax": "Záloha na daň",
+  "Child bonus": "Daňový bonus",
+  Insurance: "Pojištění",
+  Tax: "Daň",
+  Net: "Čistá",
+  "Your employer pays {v}": "Zaměstnavatel za vás zaplatí {v}",
+  "Gross plus {social} social and {health} health insurance.":
+    "Hrubá mzda plus {social} sociální a {health} zdravotní pojištění.",
+  "Calculated in CZK": "Počítáno v Kč",
+  "Child bonus is paid only from a monthly salary of {v}.":
+    "Daňový bonus se vyplácí až od měsíční mzdy {v}.",
+  "Above the annual social insurance cap ({v}): over a full year part of your salary won't be charged social insurance, so real net pay will be a little higher.":
+    "Nad ročním stropem sociálního pojištění ({v}): za celý rok se z části mzdy sociální pojištění neodvede, skutečná čistá mzda tak bude o něco vyšší.",
+  "Health insurance includes a {v} top-up to the minimum base (salary below {min}). Students, pensioners and some others are exempt.":
+    "Zdravotní pojištění zahrnuje doplatek {v} do minimálního vyměřovacího základu (mzda pod {min}). Studenti, důchodci a některé další skupiny jsou osvobozeni.",
+  "Valid for {year} · an educational estimate, not payroll advice.":
+    "Platí pro rok {year} · orientační výpočet, nikoli mzdové poradenství.",
 };
 
 type Vars = Record<string, string | number>;
