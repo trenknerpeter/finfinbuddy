@@ -33,13 +33,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Money Kalkulačka" },
+      { title: "Přehled financí — Money Kalkulačka" },
       {
         name: "description",
         content:
           "Your whole financial picture on one page: net worth, savings rate, and where you're headed — built from your Invest, Mortgage and Plan tabs.",
       },
-      { property: "og:title", content: "Dashboard — Money Kalkulačka" },
+      { property: "og:title", content: "Přehled financí — Money Kalkulačka" },
       {
         property: "og:description",
         content: "Net worth, savings rate and retirement readiness, live from your other tabs.",

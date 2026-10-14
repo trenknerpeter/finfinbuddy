@@ -12,7 +12,7 @@ import { useT } from "@/lib/i18n";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Money Kalkulačka — Invest, mortgage & retirement planning" },
+      { title: "Money Kalkulačka — čistá mzda, investice, hypotéka a důchod" },
       {
         name: "description",
         content:
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/")({
       },
       {
         property: "og:title",
-        content: "Money Kalkulačka — Invest, mortgage & retirement planning",
+        content: "Money Kalkulačka — čistá mzda, investice, hypotéka a důchod",
       },
       {
         property: "og:description",

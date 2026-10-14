@@ -23,13 +23,13 @@ import { useT } from "@/lib/i18n";
 export const Route = createFileRoute("/mortgage")({
   head: () => ({
     meta: [
-      { title: "Mortgage — Money Kalkulačka" },
+      { title: "Hypoteční kalkulačka — Money Kalkulačka" },
       {
         name: "description",
         content:
           "Enter what's left on your mortgage and see exactly what a rate change does to your payment and total interest.",
       },
-      { property: "og:title", content: "Mortgage — Money Kalkulačka" },
+      { property: "og:title", content: "Hypoteční kalkulačka — Money Kalkulačka" },
       {
         property: "og:description",
         content: "Compare your current mortgage rate against a what-if rate, side by side.",

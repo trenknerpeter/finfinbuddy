@@ -81,13 +81,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Money Kalkulačka — Investment & mortgage calculators" },
+      { title: "Money Kalkulačka — finanční kalkulačky: mzda, investice, hypotéka" },
       {
         name: "description",
         content:
           "Money Kalkulačka is a fast, private personal finance calculator: project investment growth and see what a mortgage rate change really costs.",
       },
-      { property: "og:title", content: "Money Kalkulačka — Investment & mortgage calculators" },
+      {
+        property: "og:title",
+        content: "Money Kalkulačka — finanční kalkulačky: mzda, investice, hypotéka",
+      },
       {
         property: "og:description",
         content:

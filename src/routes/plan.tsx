@@ -33,13 +33,13 @@ import { useT } from "@/lib/i18n";
 export const Route = createFileRoute("/plan")({
   head: () => ({
     meta: [
-      { title: "Plan — Money Kalkulačka" },
+      { title: "Kdy můžete přestat pracovat — Money Kalkulačka" },
       {
         name: "description",
         content:
           "Answer seven quick questions and see when you can realistically stop working — and what would have to change if you're behind.",
       },
-      { property: "og:title", content: "Plan — Money Kalkulačka" },
+      { property: "og:title", content: "Kdy můžete přestat pracovat — Money Kalkulačka" },
       {
         property: "og:description",
         content: "Work out when you can stop working, in today's money. No sign-up.",
