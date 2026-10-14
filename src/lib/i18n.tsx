@@ -445,7 +445,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("cs");
   useEffect(() => {
     const ls = window.localStorage;
-    const pref = resolvePref(ls.getItem(STORAGE_KEY), isLang, hasLegacyData((k) => ls.getItem(k)), "en");
+    const pref = resolvePref(
+      ls.getItem(STORAGE_KEY),
+      isLang,
+      hasLegacyData((k) => ls.getItem(k)),
+      "en",
+    );
     if (!pref) return;
     setLangState(pref.value);
     if (pref.persist) {

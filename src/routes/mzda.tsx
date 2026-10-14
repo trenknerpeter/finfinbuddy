@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -12,7 +12,14 @@ import { Panel } from "@/components/Panel";
 import { Switch } from "@/components/ui/switch";
 import { useCurrency } from "@/lib/currency";
 import { useT } from "@/lib/i18n";
-import { CZ_2026, SALARY_DEFAULTS, SALARY_KEY, calcSalary, formatCzk } from "@/lib/salary";
+import {
+  CZ_2026,
+  SALARY_DEFAULTS,
+  SALARY_KEY,
+  calcSalary,
+  formatCzk,
+  normalizeInput,
+} from "@/lib/salary";
 import { useScenario } from "@/lib/useScenario";
 import { cn } from "@/lib/utils";
 
@@ -44,7 +51,12 @@ const DISABILITY_OPTIONS = [
 ] as const;
 
 function Mzda() {
-  const [s, patch] = useScenario(SALARY_KEY, SALARY_DEFAULTS);
+  const [raw, patch] = useScenario(SALARY_KEY, SALARY_DEFAULTS);
+  // Shared links and storage can hold anything; show and keep only clamped values.
+  const s = useMemo(() => normalizeInput(raw), [raw]);
+  useEffect(() => {
+    if ((Object.keys(s) as (keyof typeof s)[]).some((k) => s[k] !== raw[k])) patch(s);
+  }, [s, raw, patch]);
   const { currency } = useCurrency();
   const { t } = useT();
   const r = useMemo(() => calcSalary(s), [s]);
