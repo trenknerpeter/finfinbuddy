@@ -58,8 +58,8 @@ The retirement maths in `src/lib/retirement.ts` is shared by Plan and Dashboard 
 You need Node.js and npm (or Bun).
 
 ```sh
-git clone https://github.com/trenknerpeter/finfinbuddy.git
-cd finfinbuddy
+git clone https://github.com/trenknerpeter/money-kalkulacka.git
+cd money-kalkulacka
 npm i
 npm run dev
 ```
