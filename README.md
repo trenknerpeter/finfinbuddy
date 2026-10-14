@@ -2,7 +2,7 @@
 
 Three quick calculators that add up to one picture of your finances: **invest**, **mortgage** and **when can I stop working**. No sign-up, no backend — everything runs in your browser and is saved locally.
 
-**Live app**: https://money-kalkulacka.lovable.app
+**Live app**: https://finfinbuddy.lovable.app
 
 <p align="center">
   <img src="docs/screenshots/home.png" alt="Money Kalkulačka home page" width="100%">
