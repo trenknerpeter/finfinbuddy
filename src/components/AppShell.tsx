@@ -72,7 +72,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-5">
           <Link to="/" className="flex items-center gap-2">
             <span className="size-2 rounded-full bg-primary" />
-            <span className="text-base font-semibold tracking-tight">FinBuddy</span>
+            <span className="text-base font-semibold tracking-tight">Money Kalkulačka</span>
           </Link>
           <div className="flex items-center gap-2">
             <LangSelect />

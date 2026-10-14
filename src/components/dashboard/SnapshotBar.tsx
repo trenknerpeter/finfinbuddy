@@ -89,7 +89,7 @@ export function SnapshotBar() {
     const blob = new Blob([JSON.stringify(snap, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `finbuddy-${snap.name.replace(/[^\p{L}\p{N}]+/gu, "-").toLowerCase()}.json`;
+    a.download = `money-kalkulacka-${snap.name.replace(/[^\p{L}\p{N}]+/gu, "-").toLowerCase()}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
   };
@@ -101,7 +101,7 @@ export function SnapshotBar() {
       if (!snap) throw new Error();
       setShared(snap);
     } catch {
-      setError(t("That file isn't a FinBuddy backup."));
+      setError(t("That file isn't a Money Kalkulačka backup."));
     }
   };
 

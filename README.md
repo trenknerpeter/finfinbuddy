@@ -1,11 +1,11 @@
-# FinBuddy
+# Money Kalkulačka
 
 Three quick calculators that add up to one picture of your finances: **invest**, **mortgage** and **when can I stop working**. No sign-up, no backend — everything runs in your browser and is saved locally.
 
 **Live app**: https://finfinbuddy.lovable.app
 
 <p align="center">
-  <img src="docs/screenshots/home.png" alt="FinBuddy home page" width="100%">
+  <img src="docs/screenshots/home.png" alt="Money Kalkulačka home page" width="100%">
 </p>
 
 <table>
@@ -72,7 +72,7 @@ This project is connected to [Lovable](https://lovable.dev): changes made in the
 
 ## Disclaimer
 
-FinBuddy is an educational planning tool, not financial advice. Projections rest on the assumptions you enter; real returns, rates and inflation will differ.
+Money Kalkulačka is an educational planning tool, not financial advice. Projections rest on the assumptions you enter; real returns, rates and inflation will differ.
 
 ## License
 

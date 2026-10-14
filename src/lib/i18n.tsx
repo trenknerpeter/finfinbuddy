@@ -11,8 +11,8 @@ const CS: Record<string, string> = {
   Home: "Domů",
   "Your money, in one picture": "Vaše peníze v jednom obrazu",
   "See where your money is heading.": "Podívejte se, kam vaše peníze směřují.",
-  "FinBuddy is a set of quick, private calculators. Each tab answers one question — together they build your personal dashboard. Everything stays in your browser.":
-    "FinBuddy je sada rychlých a soukromých kalkulaček. Každá záložka odpoví na jednu otázku — dohromady sestaví váš osobní přehled. Vše zůstává ve vašem prohlížeči.",
+  "Money Kalkulačka is a set of quick, private calculators. Each tab answers one question — together they build your personal dashboard. Everything stays in your browser.":
+    "Money Kalkulačka je sada rychlých a soukromých kalkulaček. Každá záložka odpoví na jednu otázku — dohromady sestaví váš osobní přehled. Vše zůstává ve vašem prohlížeči.",
   "Start with Invest": "Začít investicemi",
   "Jump to Dashboard": "Přejít na přehled",
   "Ideal journey": "Ideální postup",
@@ -104,7 +104,7 @@ const CS: Record<string, string> = {
   "Price growth above inflation": "Růst cen nad inflaci",
   Off: "Vypnuto",
   "Answer the plan questions →": "Zodpovědět otázky plánu →",
-  "Made with FinBuddy · {date}": "Vytvořeno ve FinBuddy · {date}",
+  "Made with Money Kalkulačka · {date}": "Vytvořeno v Money Kalkulačka · {date}",
   "Term": "Doba splácení",
   "Loan amount": "Výše úvěru",
   "The details": "Podrobnosti",
@@ -313,10 +313,10 @@ const CS: Record<string, string> = {
   "Saved today": "Naspořeno dnes",
   "Monthly saving": "Měsíční spoření",
   "Annual return": "Roční výnos",
-  "All figures in today's money. Made with FinBuddy · {date}":
-    "Všechny částky v dnešních cenách. Vytvořeno ve FinBuddy · {date}",
-  "FinBuddy does arithmetic, not advice. These are projections based on assumptions you can change — not a prediction, and not a recommendation to buy or sell anything.":
-    "FinBuddy počítá, neradí. Jde o projekce založené na předpokladech, které můžete měnit — nejde o předpověď ani o doporučení cokoli koupit či prodat.",
+  "All figures in today's money. Made with Money Kalkulačka · {date}":
+    "Všechny částky v dnešních cenách. Vytvořeno v Money Kalkulačka · {date}",
+  "Money Kalkulačka does arithmetic, not advice. These are projections based on assumptions you can change — not a prediction, and not a recommendation to buy or sell anything.":
+    "Money Kalkulačka počítá, neradí. Jde o projekce založené na předpokladech, které můžete měnit — nejde o předpověď ani o doporučení cokoli koupit či prodat.",
   Pot: "Portfolio",
   "Put in": "Vloženo",
   "Your number — {v}": "Cílová částka — {v}",
@@ -351,7 +351,7 @@ const CS: Record<string, string> = {
     "Načtení nahradí čísla ve všech záložkách. Pokud si chcete ty své ponechat, nejdřív je uložte.",
   "Load and save": "Načíst a uložit",
   "Dismiss": "Zavřít",
-  "That file isn't a FinBuddy backup.": "Tento soubor není záloha FinBuddy.",
+  "That file isn't a Money Kalkulačka backup.": "Tento soubor není záloha Money Kalkulačka.",
   "Switching replaces the numbers in every tab with this snapshot. Unsaved changes will be lost. Continue?":
     "Přepnutí nahradí čísla ve všech záložkách tímto snímkem. Neuložené změny se ztratí. Pokračovat?",
   "Edited since saved": "Od uložení upraveno",

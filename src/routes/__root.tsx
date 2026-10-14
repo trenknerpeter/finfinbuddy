@@ -82,13 +82,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "FinBuddy — Investment & mortgage calculators" },
+      { title: "Money Kalkulačka — Investment & mortgage calculators" },
       {
         name: "description",
         content:
-          "FinBuddy is a fast, private personal finance calculator: project investment growth and see what a mortgage rate change really costs.",
+          "Money Kalkulačka is a fast, private personal finance calculator: project investment growth and see what a mortgage rate change really costs.",
       },
-      { property: "og:title", content: "FinBuddy — Investment & mortgage calculators" },
+      { property: "og:title", content: "Money Kalkulačka — Investment & mortgage calculators" },
       {
         property: "og:description",
         content:

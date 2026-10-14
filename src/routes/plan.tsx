@@ -33,13 +33,13 @@ import { useT } from "@/lib/i18n";
 export const Route = createFileRoute("/plan")({
   head: () => ({
     meta: [
-      { title: "Plan — FinBuddy" },
+      { title: "Plan — Money Kalkulačka" },
       {
         name: "description",
         content:
           "Answer seven quick questions and see when you can realistically stop working — and what would have to change if you're behind.",
       },
-      { property: "og:title", content: "Plan — FinBuddy" },
+      { property: "og:title", content: "Plan — Money Kalkulačka" },
       {
         property: "og:description",
         content: "Work out when you can stop working, in today's money. No sign-up.",
@@ -833,18 +833,18 @@ function Results({ plan, onEdit }: { plan: SavedPlan; onEdit: () => void }) {
             </div>
           </dl>
           <p className="mt-5 text-xs text-muted-foreground">
-            {t("All figures in today's money. Made with FinBuddy · {date}", {
+            {t("All figures in today's money. Made with Money Kalkulačka · {date}", {
               date: new Date().toLocaleDateString(locale, { year: "numeric", month: "long", day: "numeric" }),
             })}
           </p>
         </div>
         <p className="plan-print-disclaimer mt-8 text-xs leading-relaxed text-muted-foreground">
-          {t("FinBuddy does arithmetic, not advice. These are projections based on assumptions you can change — not a prediction, and not a recommendation to buy or sell anything.")}
+          {t("Money Kalkulačka does arithmetic, not advice. These are projections based on assumptions you can change — not a prediction, and not a recommendation to buy or sell anything.")}
         </p>
       </div>
 
       <p className="pb-4 text-xs leading-relaxed text-muted-foreground print:hidden">
-        {t("FinBuddy does arithmetic, not advice. These are projections based on assumptions you can change — not a prediction, and not a recommendation to buy or sell anything.")}
+        {t("Money Kalkulačka does arithmetic, not advice. These are projections based on assumptions you can change — not a prediction, and not a recommendation to buy or sell anything.")}
       </p>
     </div>
   );

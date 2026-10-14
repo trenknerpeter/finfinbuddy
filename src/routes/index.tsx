@@ -7,13 +7,13 @@ import { useT } from "@/lib/i18n";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "FinBuddy — Invest, mortgage & retirement planning" },
+      { title: "Money Kalkulačka — Invest, mortgage & retirement planning" },
       {
         name: "description",
         content:
-          "FinBuddy helps you see where your money is heading: project your investments, stress-test your mortgage and plan when you can stop working.",
+          "Money Kalkulačka helps you see where your money is heading: project your investments, stress-test your mortgage and plan when you can stop working.",
       },
-      { property: "og:title", content: "FinBuddy — Invest, mortgage & retirement planning" },
+      { property: "og:title", content: "Money Kalkulačka — Invest, mortgage & retirement planning" },
       {
         property: "og:description",
         content: "Three quick calculators that add up to one picture of your finances. No sign-up.",
@@ -70,7 +70,7 @@ function Home() {
         </h1>
         <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
           {t(
-            "FinBuddy is a set of quick, private calculators. Each tab answers one question — together they build your personal dashboard. Everything stays in your browser.",
+            "Money Kalkulačka is a set of quick, private calculators. Each tab answers one question — together they build your personal dashboard. Everything stays in your browser.",
           )}
         </p>
         <div className="mt-6 flex flex-wrap items-center gap-4">

@@ -14,13 +14,13 @@ import { useT } from "@/lib/i18n";
 export const Route = createFileRoute("/invest")({
   head: () => ({
     meta: [
-      { title: "Invest — FinBuddy" },
+      { title: "Invest — Money Kalkulačka" },
       {
         name: "description",
         content:
           "See how monthly contributions compound over time, with growth split from what you put in — and what it's worth in today's money.",
       },
-      { property: "og:title", content: "Invest — FinBuddy" },
+      { property: "og:title", content: "Invest — Money Kalkulačka" },
       {
         property: "og:description",
         content: "Project investment growth live as you drag the sliders. No sign-up.",
