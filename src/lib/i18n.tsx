@@ -424,7 +424,8 @@ const CS: Record<string, string> = {
   "Your employer pays {v}": "Zaměstnavatel za vás zaplatí {v}",
   "Gross plus {social} social and {health} health insurance.":
     "Hrubá mzda plus {social} sociální a {health} zdravotní pojištění.",
-  "Calculated in CZK": "Počítáno v Kč",
+  "Salaries are calculated in Czech crowns (Kč) under 2026 Czech rules. Your other tabs stay in {currency}.":
+    "Mzda se počítá v korunách (Kč) podle českých pravidel pro rok 2026. Ostatní záložky zůstávají v {currency}.",
   "Child bonus is paid only from a monthly salary of {v}.":
     "Daňový bonus se vyplácí až od měsíční mzdy {v}.",
   "Above the annual social insurance cap ({v}): over a full year part of your salary won't be charged social insurance, so real net pay will be a little higher.":

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
+import { Info } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -197,15 +198,30 @@ function Mzda() {
       </div>
 
       <div className="space-y-8">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight">{t("Net salary")}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {t("Gross to net for Czech employees, 2026 rules.")}
-              {currency !== "CZK" && <> · {t("Calculated in CZK")}</>}
-            </p>
+        <div className="space-y-4">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-xl font-semibold tracking-tight">{t("Net salary")}</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t("Gross to net for Czech employees, 2026 rules.")}
+              </p>
+            </div>
+            <CopyLinkButton />
           </div>
-          <CopyLinkButton />
+          {currency !== "CZK" && (
+            <div
+              role="note"
+              className="flex items-start gap-2.5 rounded-md bg-accent-soft px-4 py-3 text-sm text-primary"
+            >
+              <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <p>
+                {t(
+                  "Salaries are calculated in Czech crowns (Kč) under 2026 Czech rules. Your other tabs stay in {currency}.",
+                  { currency },
+                )}
+              </p>
+            </div>
+          )}
         </div>
 
         <Panel>
