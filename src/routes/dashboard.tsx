@@ -281,7 +281,7 @@ function Dashboard() {
     });
   };
 
-  const hasAnyData = Boolean(saved.invest || saved.mortgage || saved.plan);
+  const hasAnyData = Boolean(saved.invest || saved.mortgage || saved.plan || salaryNet !== null);
   const { invest, mortgage, plan } = saved;
   const income = store.income;
 
@@ -330,10 +330,13 @@ function Dashboard() {
           <p className="text-base font-semibold">{t("Nothing here yet")}</p>
           <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
             {t(
-              "Fill in your numbers in Invest, Mortgage and Plan — the dashboard brings them together here.",
+              "Fill in your numbers in Mzda, Invest, Mortgage and Plan — the dashboard brings them together here.",
             )}
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3 text-sm font-medium">
+            <Link to="/mzda" className="text-primary hover:underline">
+              {t("Calculate your net salary →")}
+            </Link>
             <Link to="/invest" className="text-primary hover:underline">
               {t("Set up your investments →")}
             </Link>

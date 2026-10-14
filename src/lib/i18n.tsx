@@ -326,8 +326,6 @@ const CS: Record<string, string> = {
   "Based on what you've saved in the other tabs. Everything stays in your browser.":
     "Vychází z toho, co máte uloženo v ostatních záložkách. Vše zůstává ve vašem prohlížeči.",
   "Nothing here yet": "Zatím tu nic není",
-  "Fill in your numbers in Invest, Mortgage and Plan — the dashboard brings them together here.":
-    "Vyplňte svá čísla v záložkách Investice, Hypotéka a Plán — přehled je tu spojí dohromady.",
   "Financial snapshot": "Finanční snímek",
   "Save your whole situation — every tab at once — and come back to it, compare, or share it.":
     "Uložte celou svou situaci — všechny záložky najednou — a vraťte se k ní, porovnávejte nebo ji sdílejte.",
@@ -391,6 +389,9 @@ const CS: Record<string, string> = {
   "From Mzda: {v}": "Z Mzdy: {v}",
   Use: "Použít",
   "Calculate from gross salary →": "Spočítat z hrubé mzdy →",
+  "Calculate your net salary →": "Spočítat čistou mzdu →",
+  "Fill in your numbers in Mzda, Invest, Mortgage and Plan — the dashboard brings them together here.":
+    "Vyplňte svá čísla v záložkách Mzda, Investice, Hypotéka a Plán — přehled je tu spojí dohromady.",
   "Net salary": "Čistá mzda",
   "Gross to net for Czech employees, 2026 rules.":
     "Z hrubé na čistou pro zaměstnance v ČR, pravidla pro rok 2026.",
