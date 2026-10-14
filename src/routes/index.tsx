@@ -16,7 +16,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Money Kalkulačka helps you see where your money is heading: work out your net salary, project your investments, stress-test your mortgage and plan when you can stop working.",
+          "Money Kalkulačka vám ukáže, kam vaše peníze směřují: spočítejte si čistou mzdu, růst investic, dopad sazby hypotéky a kdy můžete přestat pracovat.",
       },
       {
         property: "og:title",
@@ -24,7 +24,8 @@ export const Route = createFileRoute("/")({
       },
       {
         property: "og:description",
-        content: "Four quick calculators that add up to one picture of your finances. No sign-up.",
+        content:
+          "Čtyři rychlé kalkulačky, které dohromady dají obraz vašich financí. Bez registrace.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

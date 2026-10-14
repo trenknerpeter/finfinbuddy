@@ -37,12 +37,12 @@ export const Route = createFileRoute("/dashboard")({
       {
         name: "description",
         content:
-          "Your whole financial picture on one page: net worth, savings rate, and where you're headed — built from your Invest, Mortgage and Plan tabs.",
+          "Celý obraz vašich financí na jedné stránce: čisté jmění, míra spoření a kam směřujete — sestavené ze záložek Mzda, Investice, Hypotéka a Plán.",
       },
       { property: "og:title", content: "Přehled financí — Money Kalkulačka" },
       {
         property: "og:description",
-        content: "Net worth, savings rate and retirement readiness, live from your other tabs.",
+        content: "Čisté jmění, míra spoření a připravenost na důchod, přímo z ostatních záložek.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

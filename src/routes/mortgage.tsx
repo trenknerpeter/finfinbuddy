@@ -27,12 +27,12 @@ export const Route = createFileRoute("/mortgage")({
       {
         name: "description",
         content:
-          "Enter what's left on your mortgage and see exactly what a rate change does to your payment and total interest.",
+          "Zadejte zbývající jistinu hypotéky a uvidíte, co změna sazby udělá se splátkou a celkovými úroky.",
       },
       { property: "og:title", content: "Hypoteční kalkulačka — Money Kalkulačka" },
       {
         property: "og:description",
-        content: "Compare your current mortgage rate against a what-if rate, side by side.",
+        content: "Porovnejte současnou sazbu hypotéky s jinou sazbou vedle sebe.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

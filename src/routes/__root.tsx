@@ -85,7 +85,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Money Kalkulačka is a fast, private personal finance calculator: project investment growth and see what a mortgage rate change really costs.",
+          "Money Kalkulačka je rychlá a soukromá finanční kalkulačka: spočítejte si čistou mzdu, růst investic a co s vámi udělá změna sazby hypotéky.",
       },
       {
         property: "og:title",
@@ -94,7 +94,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         property: "og:description",
         content:
-          "Project investment growth and compare mortgage rates instantly. Everything runs in your browser.",
+          "Čistá mzda, investice a hypotéka během pár vteřin. Vše se počítá ve vašem prohlížeči.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

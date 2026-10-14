@@ -37,12 +37,12 @@ export const Route = createFileRoute("/plan")({
       {
         name: "description",
         content:
-          "Answer seven quick questions and see when you can realistically stop working — and what would have to change if you're behind.",
+          "Odpovězte na sedm rychlých otázek a zjistěte, kdy můžete reálně přestat pracovat — a co změnit, pokud nestíháte.",
       },
       { property: "og:title", content: "Kdy můžete přestat pracovat — Money Kalkulačka" },
       {
         property: "og:description",
-        content: "Work out when you can stop working, in today's money. No sign-up.",
+        content: "Zjistěte, kdy můžete přestat pracovat, v dnešních cenách. Bez registrace.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

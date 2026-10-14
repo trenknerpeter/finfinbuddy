@@ -19,12 +19,12 @@ export const Route = createFileRoute("/invest")({
       {
         name: "description",
         content:
-          "See how monthly contributions compound over time, with growth split from what you put in — and what it's worth in today's money.",
+          "Podívejte se, jak měsíční vklady v čase rostou díky složenému úročení, kolik z toho je výnos — a kolik to bude mít hodnotu v dnešních cenách.",
       },
       { property: "og:title", content: "Investiční kalkulačka — Money Kalkulačka" },
       {
         property: "og:description",
-        content: "Project investment growth live as you drag the sliders. No sign-up.",
+        content: "Růst investic uvidíte hned při posouvání posuvníků. Bez registrace.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
